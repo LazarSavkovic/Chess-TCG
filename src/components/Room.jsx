@@ -1,5 +1,5 @@
 // Room.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import '../App.css';
 import { useGame } from '../context/GameContext';
 import Hand from './Hand';
@@ -12,6 +12,7 @@ import PleaseRotate from './PleaseRotate';
 import OpponentDetail from './OpponentDetail';
 import TurnDetail from './TurnDetail';
 import Detail from './Detail';
+import Sounds from './Sounds';
 
 // Utility: Generate a simple unique ID (could be improved with a package like uuid)
 const generateTabId = () => 'tab-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -35,7 +36,6 @@ function Room() {
     setMana,
     setLandBoard,
     setCenterTileControl,
-    turn,
     setTurn,
     setSelectedHandIndex,
     setLastSummonedPos,
@@ -47,7 +47,8 @@ function Room() {
     setHighlightedCells,
     setMovesLeft,
     apiHost,
-    clearHighlights
+    clearHighlights,
+    setIsPortrait
   } = useGame()
   // -----------------------
   // Refs
@@ -71,7 +72,7 @@ function Room() {
     if (assigned) {
       setUserId(assigned);
     }
-  }, []);
+  }, [userId]);
 
   // -----------------------
   // WebSocket Setup
@@ -129,7 +130,6 @@ function Room() {
       if (data.center_tile_control) setCenterTileControl(data.center_tile_control);
       if (data.turn) {
         if (data.turn !== localStorage.getItem('assignedPlayer')) {
-          console.log('data turn', data.turn, turn)
           notify('green', data.turn === userId ? "Your turn" : "Opponent's turn");
         }
         setTurn(data.turn);
@@ -304,11 +304,9 @@ function Room() {
 
   return (
     <>
-      {/* Rotation prompt overlay */}
       {isPortrait && <PleaseRotate />}
       <Notifications />
       <ConfirmationModal />
-
       <div className="left-sidebar">
         <Graveyards />
       </div>
@@ -324,10 +322,7 @@ function Room() {
         <TurnDetail handleEndTurn={handleEndTurn} />
       <Detail/>
       </div>
-      {/* Audio elements */}
-      <audio id="deathSound" src="/sounds/kill.wav" preload="auto"></audio>
-      <audio id="spawnSound" src="/sounds/spawn.ogg" preload="auto"></audio>
-      <audio id="moveSound" src="/sounds/whoosh.wav" preload="auto"></audio>
+      <Sounds />
     </>
   );
 }

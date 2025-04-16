@@ -4,7 +4,7 @@ const GameContext = createContext();
 
 export const useGame = () => useContext(GameContext);
 
-export const GameProvider = ({ children }) => {
+const GameProvider = ({ children }) => {
 
   const apiUrl = 'http://127.0.0.1:5000'
   const apiHost = '127.0.0.1:5000'
@@ -194,7 +194,6 @@ export const GameProvider = ({ children }) => {
         pendingSorcery,
         setPendingSorcery,
         pendingDiscard,
-        setPendingSorcery,
         setPendingDiscard,
         notifications,
         setNotifications,
@@ -225,3 +224,5 @@ export const GameProvider = ({ children }) => {
     </GameContext.Provider>
   );
 };
+
+export default GameProvider;

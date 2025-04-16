@@ -1,20 +1,13 @@
 import React from 'react'
 import { useGame } from '../context/GameContext';
+import Card from './Card';
 
 function HandCard({card, wsRef, i}) {
-    const {userId , setCardPreview, setSelectedHandIndex, highlightPlaceActivateZones, highlightSummonZones,selectedHandIndex, apiUrl, pendingDiscard} = useGame()
+    const { setCardPreview, setSelectedHandIndex, highlightPlaceActivateZones, highlightSummonZones,selectedHandIndex, apiUrl, pendingDiscard} = useGame()
   return (
     <div
-    key={card.id}
     id={`card-${card.id}`}
     className={`hand-card user-${card.owner} ${selectedHandIndex === i ? 'selected' : ''}`}
-    style={{
-      backgroundImage: `url(${apiUrl}/${card.image})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      color: 'white',
-      textShadow: '0 0 4px black',
-    }}
     onMouseEnter={() => setCardPreview(card)}
     onMouseLeave={() => setCardPreview(null)}
     onClick={() => {
@@ -38,61 +31,8 @@ function HandCard({card, wsRef, i}) {
       }
     }}
   >
-    {card.owner !== userId && '🂠'}
-    {card.type === 'monster' && (
-      <div
-        className="card-info"
-        style={{
-          position: 'absolute',
-          top: '1vh',
-          left: '0.5vw',
-          right: '0.5vw',
-          fontSize: '1.12vw',
-          background: 'rgba(0,0,0,0.5)',
-          borderRadius: '0.62vw',
-        }}
-      >
-        {card.name}
-        <br />
-        {card.attack} / {card.defense}
-      </div>
-    )}
-    {card.type === 'sorcery' && (
-      <div
-        className="card-info"
-        style={{
-          position: 'absolute',
-          top: '1vh',
-          left: '0.5vw',
-          right: '0.5vw',
-          fontSize: '1.12vw',
-          background: 'rgba(0,0,0,0.5)',
-          borderRadius: '0.62vw',
-        }}
-      >
-        {card.name}
-        <br />
-        (Sorcery)
-      </div>
-    )}
-    {card.type === 'land' && (
-      <div
-        className="card-info"
-        style={{
-          position: 'absolute',
-          top: '1vh',
-          left: '0.5vw',
-          right: '0.5vw',
-          fontSize: '1.12vw',
-          background: 'rgba(0,0,0,0.5)',
-          borderRadius: '0.62vw',
-        }}
-      >
-        {card.name}
-        <br />
-        (Land)
-      </div>
-    )}
+    {/* {card.owner !== userId && '🂠'} */}
+  <Card card={card} fontSize={window.innerWidth < 1000 ? '3px' : '8px'} />
   </div>
   )
 }
