@@ -26,7 +26,7 @@ function HandCard({card, wsRef, i}) {
         if (card.type === 'monster') {
           highlightSummonZones();
         } else {
-          highlightPlaceActivateZones();
+          highlightPlaceActivateZones(i);
         }
       }
     }}

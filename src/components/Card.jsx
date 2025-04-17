@@ -1,58 +1,95 @@
-import React from 'react'
-import { useGame } from "../context/GameContext";
+import React from 'react';
+import { useGame } from '../context/GameContext';
 
+function Card({ card, fontSize }) {
+  const { apiUrl } = useGame();
 
+  const renderArrows = () => {
+    const arrows = [];
 
-function Card({card, fontSize}) {
-    
-const {apiUrl} = useGame()
+    if (card.movement) {
+      for (const dir in card.movement) {
+        if (card.movement[dir]) {
+          arrows.push(
+            <div
+              key={`movement-${dir}`}
+              className={`arrow ${dir} ${
+                card.movement[dir] === 'any' ? 'red' : 'yellow'
+              }`}
+            ></div>
+          );
+        }
+      }
+    } else if (card.type === 'sorcery' && Array.isArray(card.activation_needs)) {
+      for (const dir of card.activation_needs) {
+        arrows.push(
+          <div key={`sorcery-${dir}`} className={`arrow ${dir} white`}></div>
+        );
+      }
+    } else if (card.type === 'land' && Array.isArray(card.creation_needs)) {
+      for (const dir of card.creation_needs) {
+        arrows.push(
+          <div key={`land-${dir}`} className={`arrow ${dir} white`}></div>
+        );
+      }
+    }
+
+    return arrows;
+  };
 
   return (
     <div
-    className={`play-card ${
-      card.type === 'monster'
-        ? 'monster-card'
-        : card.type === 'sorcery'
-        ? 'sorcery-card'
-        : 'land-card'
-    }`}
-    style={{fontSize}}
-  >
-    <div className="card-content">
-      <div className="title-bar">
-        {card.name}
-        <div className="mana-cost">🩸 {card.mana || 0}</div>
-      </div>
-      <div
-        className="card-image"
-        style={{
-          backgroundImage: `url(${apiUrl}/${card.image})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      ></div>
-      <div className="type-line">
-        {card.subtype || (card.type ? `(${card.type})` : '')}
-      </div>
-      <div className="rules-text">
-        {card.text || card.description || 'No effect.'}
-      </div>
-      <div className="stats-bar">
-        {card.attack && card.defense ? (
-          <>
-            <span>ATK: {card.attack}</span>
-            <span>DEF: {card.defense}</span>
-          </>
-        ) : (
-          <>
-            <span></span>
-            <span></span>
-          </>
-        )}
+      className={`play-card ${
+        card.type === 'monster'
+          ? 'monster-card'
+          : card.type === 'sorcery'
+          ? 'sorcery-card'
+          : 'land-card'
+      }`}
+      style={{ fontSize }}
+    >
+      <div className="card-content">
+        <div className="title-bar">
+          {card.name}
+          <div className="mana-cost">🩸 {card.mana || 0}</div>
+        </div>
+
+        <div
+          className="card-image"
+          style={{
+            backgroundImage: `url(${apiUrl}/${card.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        ></div>
+
+        {/* 🧭 Arrows container */}
+        <div className="directional-arrows">{renderArrows()}</div>
+
+        <div className="type-line">
+          {card.subtype || (card.type ? `(${card.type})` : '')}
+        </div>
+
+        <div className="rules-text">
+          {card.text || card.description || 'No effect.'}
+        </div>
+
+        <div className="stats-bar">
+          {card.attack && card.defense ? (
+            <>
+              <span>ATK: {card.attack}</span>
+              <span>DEF: {card.defense}</span>
+            </>
+          ) : (
+            <>
+              <span></span>
+              <span></span>
+            </>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-  )
+  );
 }
 
-export default Card
+export default Card;

@@ -6,7 +6,7 @@ import BoardCard from './BoardCard';
 
 const cellSize = 10; // in vh units
 function Board({ flipDirection, notify, wsRef }) {
-    const {mana, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, centerTileControl, setCardPreview, pendingSorcery } = useGame()
+    const {mana, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, centerTileControl, setCardPreview, pendingSorcery, setPendingSorcery } = useGame()
 
     const numRows = board.length;
     const numCols = board[0]?.length || 0;

@@ -95,27 +95,27 @@ const GameProvider = ({ children }) => {
     setHighlightedCells(highlights);
   };
 
-  const highlightPlaceActivateZones = () => {
+  const highlightPlaceActivateZones = (i) => {
     clearHighlights();
     const currentHand = userId === '1' ? hand1 : hand2;
-    const card = currentHand[selectedHandIndex];
+    const card = currentHand[i];
     if (!card || !Array.isArray(card.activation_needs || card.creation_needs)) return;
     const needs = card.activation_needs || card.creation_needs;
     const directions = {
-      forward: userId === '1' ? [-1, 0] : [1, 0],
-      back: userId === '1' ? [1, 0] : [-1, 0],
-      left: userId === '1' ? [0, -1] : [0, 1],
-      right: userId === '1' ? [0, 1] : [0, -1],
+      "forward": userId === '1' ? [-1, 0] : [1, 0],
+      "back": userId === '1' ? [1, 0] : [-1, 0],
+      "left": userId === '1' ? [0, -1] : [0, 1],
+      "right": userId === '1' ? [0, 1] : [0, -1],
       'forward-left': userId === '1' ? [-1, -1] : [1, 1],
       'forward-right': userId === '1' ? [-1, 1] : [1, -1],
       'back-left': userId === '1' ? [1, -1] : [-1, 1],
       'back-right': userId === '1' ? [1, 1] : [-1, -1],
     };
     const flipDirection = {
-      forward: 'back',
-      back: 'forward',
-      left: 'right',
-      right: 'left',
+      "forward": 'back',
+      "back": 'forward',
+      "left": 'right',
+      "right": 'left',
       'forward-left': 'back-right',
       'forward-right': 'back-left',
       'back-left': 'forward-right',

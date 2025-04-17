@@ -57,20 +57,15 @@ function Room() {
   const previousPositions = useRef({});
 
   // On Room load, check for an existing username; if none, generate one.
-  useEffect(() => {
-    let username = localStorage.getItem("username");
-    if (!username) {
-      // You can replace generateTabId() with your own generate function.
-      username = generateTabId();
-      localStorage.setItem("username", username);
-    }
-  }, []);
+
 
   // Retrieve the previously assigned player slot (if any)
   useEffect(() => {
-    const assigned = localStorage.getItem("assignedPlayer");
-    if (assigned) {
-      setUserId(assigned);
+    const userAssignments = JSON.parse(localStorage.getItem("userAssignments"));
+    const username = localStorage.getItem("username");
+    if (userAssignments && username) {
+      console.log('assigned', userAssignments[username])
+      setUserId(userAssignments[username]);
     }
   }, [userId]);
 
@@ -83,6 +78,13 @@ function Room() {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const ws = new WebSocket(`${protocol}://${apiHost}/game/${roomId}`);
     wsRef.current = ws;
+
+    let username = localStorage.getItem("username");
+    if (!username) {
+      // You can replace generateTabId() with your own generate function.
+      username = generateTabId();
+      localStorage.setItem("username", username);
+    }
 
     ws.onerror = (e) => {
       console.error("[WebSocket Error]", e);
@@ -102,11 +104,10 @@ function Room() {
       const data = JSON.parse(event.data);
       console.log('[WebSocket] Incoming:', data);
 
-      // On the first message from the backend, it sends back the assigned player slot.
-      if (data.user_id && !localStorage.getItem('assignedPlayer')) {
-        setUserId(data.user_id);
-        // Persist the assigned player slot so we can restore it on reload.
-        localStorage.setItem("assignedPlayer", data.user_id);
+      if (data.type === 'init') {
+        console.log(data)
+        localStorage.setItem('userAssignments', JSON.stringify(data.user_assignments)) 
+        setUserId(data.user_assignments[username]); 
       }
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
@@ -129,8 +130,11 @@ function Room() {
       if (data.land_board) setLandBoard(data.land_board);
       if (data.center_tile_control) setCenterTileControl(data.center_tile_control);
       if (data.turn) {
-        if (data.turn !== localStorage.getItem('assignedPlayer')) {
-          notify('green', data.turn === userId ? "Your turn" : "Opponent's turn");
+        const userAsignments = JSON.parse(localStorage.getItem('userAssignments'));
+        const username = localStorage.getItem('username');
+        console.log(userAsignments[username], 'turn')
+        if (data.turn !== userAsignments[username]) {          
+          notify('green', data.turn === userAsignments[username] ? "Your turn" : "Opponent's turn");
         }
         setTurn(data.turn);
       }

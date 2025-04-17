@@ -209,6 +209,7 @@ h5 {
   align-items: center;
   justify-content: center;
   z-index: 0; /* ensure base level */
+  border-radius: 5px;
 }
 
 .card-frame.user-1 {
@@ -410,12 +411,18 @@ h5 {
   background: linear-gradient(145deg, #5c430e, #105364);
   color: transparent;
   border: 2px solid #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
 }
 
 .card-frame {
   background-size: cover;
   background-position: center;
   position: relative;
+  color: white;
+  text-shadow: 0 0 3px black, 0 0 6px black;
 }
 
 .card-preview-frame {
@@ -513,6 +520,9 @@ h5 {
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.25);
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .graveyard .grave-card {
@@ -820,7 +830,7 @@ h5 {
 }
 
 .monster-card .mana-cost {
-  color: #cc3d00;
+  color: #e7d0b2;
 }
 
 
@@ -837,7 +847,7 @@ h5 {
 }
 
 .sorcery-card .mana-cost {
-  color: #cabbed;
+  color: #d7ccf0;
 }
 
 
@@ -855,5 +865,5 @@ h5 {
 }
 
 .land-card .mana-cost {
-  color: #7ba86c;
+  color: #c5d7bf;
 }
