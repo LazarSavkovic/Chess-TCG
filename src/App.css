@@ -33,6 +33,7 @@ body {
   border: 2px solid #444;
   flex-direction: row;
   justify-content: space-between;
+  position: relative;
 }
 
 .main,
@@ -198,7 +199,7 @@ h5 {
   margin: 0
 }
 
-.card-frame {
+.card-frame, .monster {
   background-size: cover;
   background-position: center;
   position: relative;
@@ -212,12 +213,12 @@ h5 {
   border-radius: 5px;
 }
 
-.card-frame.user-1 {
+.card-frame.user-1, .monster.user-1 {
   border: 2px solid #3399ff; /* blue */
   box-shadow: 0 0 4px #3399ff;
 }
 
-.card-frame.user-2 {
+.card-frame.user-2, .monster.user-2 {
   border: 2px solid orange;
   box-shadow: 0 0 4px orange;
 }
@@ -331,7 +332,7 @@ h5 {
   z-index: 10;
 }
 
-.card-frame .overlay {
+.card-frame .overlay, .monster .overlay {
   position: absolute;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.4);
@@ -339,7 +340,7 @@ h5 {
   pointer-events: none;
 }
 
-.card-frame:hover .card-name {
+.monster:hover .card-name, .card-frame:hover .card-name {
   display: block;
 }
 
@@ -417,7 +418,7 @@ h5 {
   border-radius: 5px;
 }
 
-.card-frame {
+.monster, .card-frame {
   background-size: cover;
   background-position: center;
   position: relative;
@@ -655,7 +656,7 @@ h5 {
 }
 
 
-.cell .card-image {
+.cell .card-image, .monster .card-image {
   position: absolute;
   top: 0;
   left: 0;
@@ -866,4 +867,23 @@ h5 {
 
 .land-card .mana-cost {
   color: #c5d7bf;
+}
+
+/* .monster-board {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  padding: 0;
+  margin: 0;
+} */
+
+.monster {
+  position: absolute;
+  width: 14%;
+  height: 14%;
+  transition: top 0.3s ease, left 0.3s ease;
+  will-change: top, left;
+  transform: scale(98%);
+  z-index: 2;
+  cursor: pointer;
 }

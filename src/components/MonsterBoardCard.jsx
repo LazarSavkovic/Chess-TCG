@@ -1,18 +1,22 @@
 import React from 'react'
 import { useGame } from '../context/GameContext';
 
-function BoardCard({card, x, y, flipDirection}) {
+function MonsterBoardCard({card, x, y, flipDirection, handleClick}) {
     const {lastSummonedPos, apiUrl, userId, setCardPreview} = useGame()
   return (
     <div
     id={`card-${card.id}`}
-    className={`card-frame user-${card.owner} ${lastSummonedPos === `${x}-${y}` ? 'just-summoned' : ''
+    className={`monster user-${card.owner} ${lastSummonedPos === `${x}-${y}` ? 'just-summoned' : ''
         }`}
-    style={card.type === 'land' ? { transform: 'rotate(45deg)' } : {}}
+        style={{
+            top: `${y * 14.2857142857}%`,
+            left: `${x * 14.2857142857}%`,
+          }}
     title={card.name}
     onMouseEnter={() => setCardPreview(card)}
+    onClick={handleClick}
 >
-    <div className="card-image" style={{ backgroundImage: `url(${apiUrl}${card.image})`,  transform: card.owner !== userId ? 'scaleY(-1)' : 'none'  }}></div>
+    <div className="card-image" style={{ backgroundImage: `url(${apiUrl}${card.image})`,  transform: card.owner !== userId ? 'scaleY(-1)' : 'none' }}></div>
     <div className="overlay"></div>
     <div className="card-name">{card.name}</div>
     <div className="stats">
@@ -54,26 +58,15 @@ function BoardCard({card, x, y, flipDirection}) {
                     <div
                         key={dir}
                         className={`movement movement-${finalDir}`}
-                        style={{ borderColor: card.movement[dir] === 'any' ? 'red' : 'lime' }}
+                        style={{ borderColor: card.movement[dir] === 'any' ? 'red' : 'yellow' }}
                     ></div>
                 );
             }
             return null;
         })}
-    {card.creation_needs &&
-        Array.isArray(card.creation_needs) &&
-        card.creation_needs.map((dir) => {
-            const finalDir = card.owner === userId ? dir : flipDirection(dir);
-            return (
-                <div
-                    key={dir}
-                    className={`movement movement-${finalDir}`}
-                    style={{ borderColor: 'white' }}
-                ></div>
-            );
-        })}
+    
 </div>
   )
 }
 
-export default BoardCard
+export default MonsterBoardCard

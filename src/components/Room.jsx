@@ -100,7 +100,7 @@ function Room() {
       ws.send(JSON.stringify({ username }));
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       const data = JSON.parse(event.data);
       console.log('[WebSocket] Incoming:', data);
 
@@ -124,9 +124,33 @@ function Room() {
         setPendingDiscard(true);
         return;
       }
+      
 
-      // Update game state from WS message
-      if (data.board) setBoard(data.board);
+      if (data.board) {
+        if (data.to && data.from && data.success) {
+          const { from, to } = data;
+          const [fromX, fromY] = from;
+          const [toX, toY] = to;
+      
+          // Step 1: Clone current board and move the card
+          setBoard(prev => {
+            const temp = JSON.parse(JSON.stringify(prev));
+            const movingCard = temp[fromX][fromY];
+            temp[fromX][fromY] = null;
+            temp[toX][toY] = movingCard;
+            return temp;
+          });
+      
+          // Wait for the transition to finish
+          await new Promise(resolve => setTimeout(resolve, 300));
+      
+          if (data.board) setBoard(data.board);
+          if (data.land_board) setLandBoard(data.land_board);
+        } else {
+          setBoard(data.board);
+        }
+      }
+      
       if (data.land_board) setLandBoard(data.land_board);
       if (data.center_tile_control) setCenterTileControl(data.center_tile_control);
       if (data.turn) {

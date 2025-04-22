@@ -1,6 +1,7 @@
 import React from 'react'
 import { useGame } from '../context/GameContext';
 import BoardCard from './BoardCard';
+import MonsterBoardCard from './MonsterBoardCard';
 
 
 
@@ -16,6 +17,8 @@ function Board({ flipDirection, notify, wsRef }) {
 
     // Handle a click on a board cell at (x, y)
     const handleCellClick = (x, y) => {
+        console.log('cellular', x, y)
+
         // If awaiting sorcery target selection
         if (pendingSorcery) {
             if (wsRef.current) {
@@ -118,6 +121,7 @@ function Board({ flipDirection, notify, wsRef }) {
             return;
         }
         const cellCard = board[x] && board[x][y];
+        console.log('cellCard', cellCard)
         if (selected) {
             // Moving a card from previously selected cell
             if (wsRef.current) {
@@ -168,6 +172,22 @@ function Board({ flipDirection, notify, wsRef }) {
             }
         }
     };
+    
+
+    const monsters = [];
+    for (let y = 0; y < board.length; y++) {
+      for (let x = 0; x < board[y].length; x++) {
+        const card = board[y][x];
+    
+        if (card && card.type === 'monster') {
+          const x2 = userId === '2' ? 6 - x : x;
+          const y2 = userId === '2' ? 6 - y : y;
+          monsters.push({ card, x: x2, y: y2, realX: x, realY: y });
+        }
+      }
+    }
+    
+    
 
     return (
         <div
@@ -177,6 +197,9 @@ function Board({ flipDirection, notify, wsRef }) {
                 gridTemplateRows: `repeat(${numRows}, ${cellSize}vh)`,
             }}
         >
+            {monsters.map(({ card, x, y, realX, realY }) => (
+  <MonsterBoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} handleClick={() => handleCellClick(realY, realX)} />
+))}
             {rowRange.map((x) =>
                 colRange.map((y) => {
                     const cellKey = `${x}-${y}`;
@@ -223,7 +246,7 @@ function Board({ flipDirection, notify, wsRef }) {
                                 const boardCard = board[x] ? board[x][y] : null;
                                 const cards = [landCard, boardCard];
                                 return cards.map((card) => {
-                                    if (!card) return null;
+                                    if (!card || card.type === 'monster' ) return null;
                                     return (
                                         <BoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection}/>
                                     );
@@ -233,6 +256,7 @@ function Board({ flipDirection, notify, wsRef }) {
                     );
                 })
             )}
+
         </div>
     );
 };
