@@ -13,6 +13,7 @@ import OpponentDetail from './OpponentDetail';
 import TurnDetail from './TurnDetail';
 import Detail from './Detail';
 import Sounds from './Sounds';
+import TutoringTargets from './TutoringTargets';
 
 // Utility: Generate a simple unique ID (could be improved with a package like uuid)
 const generateTabId = () => 'tab-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -40,6 +41,7 @@ function Room() {
     setSelectedHandIndex,
     setLastSummonedPos,
     setSelected,
+    pendingSorcery,
     setPendingSorcery,
     setPendingDiscard,
     gameOver,
@@ -48,7 +50,11 @@ function Room() {
     setMovesLeft,
     apiHost,
     clearHighlights,
-    setIsPortrait
+    setIsPortrait,
+    showTutoringPopup,
+    setShowTutoringPopup,
+    tutoringTargets,
+    setTutoringTargets
   } = useGame()
   // -----------------------
   // Refs
@@ -64,7 +70,6 @@ function Room() {
     const userAssignments = JSON.parse(localStorage.getItem("userAssignments"));
     const username = localStorage.getItem("username");
     if (userAssignments && username) {
-      console.log('assigned', userAssignments[username])
       setUserId(userAssignments[username]);
     }
   }, [userId]);
@@ -104,16 +109,29 @@ function Room() {
       const data = JSON.parse(event.data);
       console.log('[WebSocket] Incoming:', data);
 
+      const userAssignments = JSON.parse(localStorage.getItem("userAssignments"));
+      const username = localStorage.getItem("username");
+
       if (data.type === 'init') {
-        console.log(data)
-        localStorage.setItem('userAssignments', JSON.stringify(data.user_assignments)) 
-        setUserId(data.user_assignments[username]); 
+        localStorage.setItem('userAssignments', JSON.stringify(data.user_assignments))
+        setUserId(data.user_assignments[username]);
+      }
+
+
+      // Special handling for awaiting-input (e.g. sorcery targeting)
+      if (data.type === 'awaiting-deck-tutoring') {
+        setPendingSorcery({ slot: data.slot, card_id: data.card_id });
+        
+        notify('yellow', `Select a target for ${data.card_id .split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
+        // Store valid target cells (as strings "x-y") to later highlight them
+        showValidTutoringTargets(data.valid_tutoring_targets)
+        return;
       }
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-input') {
         setPendingSorcery({ slot: data.slot, card_id: data.card_id });
-        notify('yellow', `Select a target for ${data.card_id}`);
+        notify('yellow', `Select a target for ${data.card_id .split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
         // Store valid target cells (as strings "x-y") to later highlight them
         setHighlightedCells(data.valid_targets.map(([x, y]) => `${x}-${y}`));
         return;
@@ -124,14 +142,14 @@ function Room() {
         setPendingDiscard(true);
         return;
       }
-      
+
 
       if (data.board) {
         if (data.to && data.from && data.success) {
           const { from, to } = data;
           const [fromX, fromY] = from;
           const [toX, toY] = to;
-      
+
           // Step 1: Clone current board and move the card
           setBoard(prev => {
             const temp = JSON.parse(JSON.stringify(prev));
@@ -140,24 +158,23 @@ function Room() {
             temp[toX][toY] = movingCard;
             return temp;
           });
-      
+
           // Wait for the transition to finish
           await new Promise(resolve => setTimeout(resolve, 300));
-      
+
           if (data.board) setBoard(data.board);
           if (data.land_board) setLandBoard(data.land_board);
         } else {
           setBoard(data.board);
         }
       }
-      
+
       if (data.land_board) setLandBoard(data.land_board);
       if (data.center_tile_control) setCenterTileControl(data.center_tile_control);
       if (data.turn) {
         const userAsignments = JSON.parse(localStorage.getItem('userAssignments'));
         const username = localStorage.getItem('username');
-        console.log(userAsignments[username], 'turn')
-        if (data.turn !== userAsignments[username]) {          
+        if (data.turn !== userAsignments[username]) {
           notify('green', data.turn === userAsignments[username] ? "Your turn" : "Opponent's turn");
         }
         setTurn(data.turn);
@@ -182,7 +199,40 @@ function Room() {
         }
         if (data.info?.includes("Move successful")) playSound("moveSound");
         if (data.info?.includes("defeated") || data.info?.includes("killed")) playSound("deathSound");
-        if (data.info?.includes("attacked directly")) playSound("deathSound");
+        if (data.info?.includes("attacked directly")) {
+
+          const cardEl = document.getElementById(`card-${data.card.id}`);
+          if (!cardEl) return; // Always safe
+          const originalTop = parseFloat(cardEl.style.top.slice(0, cardEl.style.top.length - 1)) || 0;
+
+          // Amounts for shifting
+          const step = 5;
+          const jump = 15;
+
+          let first, second;
+
+          // 👉 Logic based on who is moving
+          if (data.turn == userAssignments[username]) {
+            first = originalTop + step;     // +5
+            second = originalTop - jump;    // -15
+          } else {
+            first = originalTop - step;     // -5
+            second = originalTop + jump;    // +15
+          }
+
+          setTimeout(() => {
+            cardEl.style.top = `${first}%`;
+            setTimeout(() => {
+              cardEl.style.top = `${second}%`;
+              playSound("deathSound");
+              notify('red', `- ${data.card.mana} mana`);
+              setTimeout(() => {
+                cardEl.style.top = `${originalTop}%`;
+              }, 300);
+            }, 300);
+          }, 300);
+
+        }
         if (data.info?.includes("activated") || data.info?.includes("cast")) playSound("spawnSound");
       }
 
@@ -314,6 +364,11 @@ function Room() {
     }
   };
 
+  function showValidTutoringTargets(cards) {
+  setTutoringTargets(cards);   // Set the valid tutoring targets (Card objects)
+  setShowTutoringPopup(true);          // Open the popup
+}
+
   // Function to flip a direction string (used in board rendering)
   const flipDirection = (dir) => {
     const flipMap = {
@@ -348,9 +403,10 @@ function Room() {
       <div className="right-sidebar">
         <OpponentDetail />
         <TurnDetail handleEndTurn={handleEndTurn} />
-      <Detail/>
+        <Detail />
       </div>
       <Sounds />
+      <TutoringTargets setShowTutoringPopup={setShowTutoringPopup} showTutoringPopup={showTutoringPopup} tutoringTargets={tutoringTargets} wsRef={wsRef} />
     </>
   );
 }

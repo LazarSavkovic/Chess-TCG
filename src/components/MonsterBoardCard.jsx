@@ -58,7 +58,7 @@ function MonsterBoardCard({card, x, y, flipDirection, handleClick}) {
                     <div
                         key={dir}
                         className={`movement movement-${finalDir}`}
-                        style={{ borderColor: card.movement[dir] === 'any' ? 'red' : 'yellow' }}
+                        style={{ borderColor: card.movement[dir] === 2 ? 'red' : 'yellow' }}
                     ></div>
                 );
             }

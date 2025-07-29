@@ -32,6 +32,12 @@ const GameProvider = ({ children }) => {
   const [confirmation, setConfirmation] = useState(null);
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
   const [cardPreview, setCardPreview] = useState(null);
+
+
+
+const [showTutoringPopup, setShowTutoringPopup] = useState(false);
+const [tutoringTargets, setTutoringTargets] = useState([]); // Adjust CardType as needed
+
   
   // -----------------------
   // Utility Functions
@@ -141,7 +147,7 @@ const GameProvider = ({ children }) => {
             const effectiveDir =
               neighbor.owner === userId ? baseOpposite : flipDirection[baseOpposite];
             const movementVal = neighbor.movement?.[effectiveDir];
-            if (movementVal === 1 || movementVal === 'any') {
+            if (movementVal === 1 || movementVal === 2 || movementVal === 'any') {
               valid = true;
             }
           }
@@ -217,7 +223,11 @@ const GameProvider = ({ children }) => {
         highlightSummonZones,
         highlightPlaceActivateZones,
         apiUrl,
-        apiHost
+        apiHost,
+        showTutoringPopup,
+        setShowTutoringPopup,
+        tutoringTargets,
+        setTutoringTargets
       }}
     >
       {children}

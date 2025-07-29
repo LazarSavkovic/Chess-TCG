@@ -887,3 +887,85 @@ h5 {
   z-index: 2;
   cursor: pointer;
 }
+
+
+.tutoring-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7); /* dark background overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.tutoring-popup-content {
+  background: #1c1c1c;
+  border: 2px solid #444;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: hidden;
+  color: #fff;
+  box-shadow: 0 0 20px #000;
+  animation: popupFadeIn 0.3s ease;
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.tutoring-popup-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  text-align: center;
+  color: #ffcc00;
+}
+
+.tutoring-card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  overflow-y: auto;
+  max-height: 60vh;
+  padding: 8px;
+  border: 1px solid #333;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+}
+
+/* Optional: Style individual Card component containers if needed */
+.tutoring-card-list > * {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.tutoring-card-list > *:hover {
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+.tutoring-popup-content button {
+  margin-top: 16px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 10px 16px;
+  border: none;
+  background: #ff4d4d;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tutoring-popup-content button:hover {
+  background: #ff1a1a;
+}

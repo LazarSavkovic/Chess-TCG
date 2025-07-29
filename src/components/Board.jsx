@@ -17,7 +17,6 @@ function Board({ flipDirection, notify, wsRef }) {
 
     // Handle a click on a board cell at (x, y)
     const handleCellClick = (x, y) => {
-        console.log('cellular', x, y)
 
         // If awaiting sorcery target selection
         if (pendingSorcery) {
@@ -121,7 +120,6 @@ function Board({ flipDirection, notify, wsRef }) {
             return;
         }
         const cellCard = board[x] && board[x][y];
-        console.log('cellCard', cellCard)
         if (selected) {
             // Moving a card from previously selected cell
             if (wsRef.current) {

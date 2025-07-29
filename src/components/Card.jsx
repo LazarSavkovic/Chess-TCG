@@ -14,7 +14,7 @@ function Card({ card, fontSize }) {
             <div
               key={`movement-${dir}`}
               className={`arrow ${dir} ${
-                card.movement[dir] === 'any' ? 'red' : 'yellow'
+                card.movement[dir] === 2 ? 'red' : 'yellow'
               }`}
             ></div>
           );
