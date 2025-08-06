@@ -13,9 +13,8 @@ function Card({ card, fontSize }) {
           arrows.push(
             <div
               key={`movement-${dir}`}
-              className={`arrow ${dir} ${
-                card.movement[dir] === 2 ? 'red' : 'yellow'
-              }`}
+              className={`arrow ${dir} ${card.movement[dir] === 2 ? 'red' : 'yellow'
+                }`}
             ></div>
           );
         }
@@ -23,13 +22,13 @@ function Card({ card, fontSize }) {
     } else if (card.type === 'sorcery' && Array.isArray(card.activation_needs)) {
       for (const dir of card.activation_needs) {
         arrows.push(
-          <div key={`sorcery-${dir}`} className={`arrow ${dir} white`}></div>
+          <div key={`sorcery-${dir}`} className={`arrow ${dir} ${card.role || 'white'}`}></div>
         );
       }
     } else if (card.type === 'land' && Array.isArray(card.creation_needs)) {
       for (const dir of card.creation_needs) {
         arrows.push(
-          <div key={`land-${dir}`} className={`arrow ${dir} white`}></div>
+          <div key={`land-${dir}`} className={`arrow ${dir} ${card.role || 'white'}`}></div>
         );
       }
     }
@@ -39,15 +38,10 @@ function Card({ card, fontSize }) {
 
   return (
     <div
-      className={`play-card ${
-        card.type === 'monster'
-          ? 'monster-card'
-          : card.type === 'sorcery'
-          ? 'sorcery-card'
-          : 'land-card'
-      }`}
+      className={`play-card ${card.type}-card ${card.role ? `${card.role}-${card.type}` : ''}`}
       style={{ fontSize }}
     >
+
       <div className="card-content">
         <div className="title-bar">
           {card.name}
@@ -67,11 +61,11 @@ function Card({ card, fontSize }) {
         <div className="directional-arrows">{renderArrows()}</div>
 
         <div className="type-line">
-          {card.subtype || (card.type ? `(${card.type})` : '')}
+          {card.subtype || (card.type ? `(${card.type} - ${card.role.charAt(0).toUpperCase() + card.role.slice(1)})` : '')}
         </div>
 
         <div className="rules-text">
-          {card.text || card.description || 'No effect.'}
+          {card.text || card.description || ` No effect.`}
         </div>
 
         <div className="stats-bar">

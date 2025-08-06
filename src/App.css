@@ -788,7 +788,7 @@ h5 {
   width: 1em;
   height: 1em;
   background: #fff;
-  opacity: 0.25;
+  /* opacity: 0.25; */
   transform: rotate(45deg);
 }
 
@@ -877,6 +877,108 @@ h5 {
   margin: 0;
 } */
 
+/* === MONSTER ROLES === */
+
+/* ⚔️ Aggressor */
+.aggressor-monster {
+  background: #4a1313;
+  border-color: #992222;
+}
+
+.aggressor-monster .title-bar,
+.aggressor-monster .stats-bar {
+  background: linear-gradient(to right, #aa2c2c, #e05353);
+  color: #fbe3e3;
+}
+
+/* 🛡️ Sentinel */
+.sentinel-monster {
+  background: #f1f1f1;
+  border-color: #808080;
+}
+
+.sentinel-monster .title-bar,
+.sentinel-monster .stats-bar {
+  background: linear-gradient(to right, #e0e0e0, #ffffff);
+  color: #333333;
+}
+
+
+/* 🧠 Manipulator */
+.manipulator-monster {
+  background: #3b1f3f;
+  border-color: #ad4da7;
+}
+
+.manipulator-monster .title-bar,
+.manipulator-monster .stats-bar {
+  background: linear-gradient(to right, #b257aa, #e28bd1);
+  color: #ffe6f5;
+}
+
+
+/* 🌀 Walker */
+.walker-monster {
+  background: #1b2a40; /* Deep cool blue */
+  border-color: #3c7cc2; /* Soft mid-blue */
+}
+
+.walker-monster .title-bar,
+.walker-monster .stats-bar {
+  background: linear-gradient(to right, #3c7cc2, #6eaee8); /* Calm cool gradient */
+  color: #e3f2fd; /* Light ice blue text */
+}
+
+
+/* ☠️ Breaker */
+.breaker-monster {
+  background: #212121;
+  border-color: #464646;
+}
+
+.breaker-monster .title-bar,
+.breaker-monster .stats-bar {
+  background: linear-gradient(to right, #5e5e5e, #8a8a8a);
+  color: #f2f2f2;
+}
+
+/* === Arrow Colors by Role === */
+
+.arrow.aggressor {
+  background-color: #e84545; /* Crimson Red */
+  box-shadow: 0 0 4px 2px rgba(232, 69, 69, 0.5);
+}
+
+.arrow.sentinel {
+  background-color: #f4f4f4; /* Off-White / Silver */
+  box-shadow: 0 0 4px 2px rgba(255, 255, 255, 0.3);
+}
+
+.arrow.manipulator {
+  background-color: #e28bd1; /* Soft Magenta */
+  box-shadow: 0 0 4px 2px rgba(226, 139, 209, 0.4);
+}
+
+.arrow.walker {
+  background-color: #64c3d4; /* Cool Aqua */
+  box-shadow: 0 0 4px 2px rgba(100, 195, 212, 0.4);
+}
+
+.arrow.breaker {
+  background-color: #000000; /* Pure black */
+  border: 1px solid #9c9c9c; /* Bright lime/yellow-green for contrast */
+  box-shadow: 0 0 6px 2px rgba(208, 255, 58, 0.3); /* subtle glow */
+}
+
+
+/* Fallback for cards with no role */
+.arrow.white {
+  background-color: white;
+  box-shadow: 0 0 3px 1px rgba(255, 255, 255, 0.3);
+}
+
+
+
 .monster {
   position: absolute;
   width: 14%;
@@ -913,6 +1015,7 @@ h5 {
   color: #fff;
   box-shadow: 0 0 20px #000;
   animation: popupFadeIn 0.3s ease;
+  z-index: 1001;
 }
 
 @keyframes popupFadeIn {

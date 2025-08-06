@@ -14,12 +14,19 @@ const GameProvider = ({ children }) => {
   const [landBoard, setLandBoard] = useState([]);
   const [hand1, setHand1] = useState([]);
   const [hand2, setHand2] = useState([]);
+  const [landDeck1, setLandDeck1] = useState([]);
+  const [landDeck2, setLandDeck2] = useState([]);
   const [graveyard1, setGraveyard1] = useState([]);
   const [graveyard2, setGraveyard2] = useState([]);
-  const [mana, setMana] = useState({ '1': 50, '2': 50 });
+  const [mana, setMana] = useState(() => {
+    const stored = localStorage.getItem('mana');
+    return stored ? JSON.parse(stored) : { '1': 50, '2': 50 };
+  });
+
   const [centerTileControl, setCenterTileControl] = useState({ '1': 0, '2': 0 });
   const [turn, setTurn] = useState('1');
   const [selectedHandIndex, setSelectedHandIndex] = useState(null);
+  const [selectedLandDeckIndex, setSelectedLandDeckIndex] = useState(null);
   const [lastSummonedPos, setLastSummonedPos] = useState(null);
   const [selected, setSelected] = useState(null); // Selected board cell [x, y]
   const [pendingSorcery, setPendingSorcery] = useState(null);
@@ -32,21 +39,23 @@ const GameProvider = ({ children }) => {
   const [confirmation, setConfirmation] = useState(null);
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
   const [cardPreview, setCardPreview] = useState(null);
+  const [showLandDeck, setShowLandDeck] = useState(false);
 
 
 
-const [showTutoringPopup, setShowTutoringPopup] = useState(false);
-const [tutoringTargets, setTutoringTargets] = useState([]); // Adjust CardType as needed
 
-  
+  const [showTutoringPopup, setShowTutoringPopup] = useState(false);
+  const [tutoringTargets, setTutoringTargets] = useState([]); // Adjust CardType as needed
+
+
   // -----------------------
   // Utility Functions
   // -----------------------
   const clearHighlights = () => {
     setHighlightedCells([]);
-  };  
+  };
   // Confirmation overlay: stores message and callbacks
-  const confirmAction = (message, yesMessage, noMessage, onYes, onNo = () => {}) => {
+  const confirmAction = (message, yesMessage, noMessage, onYes, onNo = () => { }) => {
     setConfirmation({ message, yesMessage, noMessage, onYes, onNo });
   };
 
@@ -56,7 +65,7 @@ const [tutoringTargets, setTutoringTargets] = useState([]); // Adjust CardType a
     clearHighlights();
   };
 
-  
+
   // Highlight moves available from board position (x, y) for a given card
   const highlightMoves = (x, y, card) => {
     clearHighlights();
@@ -101,9 +110,9 @@ const [tutoringTargets, setTutoringTargets] = useState([]); // Adjust CardType a
     setHighlightedCells(highlights);
   };
 
-  const highlightPlaceActivateZones = (i) => {
+  const highlightPlaceActivateZones = (i, land) => {
     clearHighlights();
-    const currentHand = userId === '1' ? hand1 : hand2;
+    const currentHand = !land ? userId === '1' ? hand1 : hand2 : userId === '1' ? landDeck1 : landDeck2;
     const card = currentHand[i];
     if (!card || !Array.isArray(card.activation_needs || card.creation_needs)) return;
     const needs = card.activation_needs || card.creation_needs;
@@ -191,6 +200,10 @@ const [tutoringTargets, setTutoringTargets] = useState([]); // Adjust CardType a
         setGraveyard1,
         graveyard2,
         setGraveyard2,
+        landDeck1,
+        setLandDeck1,
+        landDeck2,
+        setLandDeck2,
         deckSizes,
         setDeckSizes,
         movesLeft,
@@ -227,7 +240,11 @@ const [tutoringTargets, setTutoringTargets] = useState([]); // Adjust CardType a
         showTutoringPopup,
         setShowTutoringPopup,
         tutoringTargets,
-        setTutoringTargets
+        setTutoringTargets,
+        showLandDeck,
+        setShowLandDeck,
+        setSelectedLandDeckIndex,
+        selectedLandDeckIndex
       }}
     >
       {children}

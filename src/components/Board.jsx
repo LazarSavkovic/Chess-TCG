@@ -7,7 +7,7 @@ import MonsterBoardCard from './MonsterBoardCard';
 
 const cellSize = 10; // in vh units
 function Board({ flipDirection, notify, wsRef }) {
-    const {mana, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, centerTileControl, setCardPreview, pendingSorcery, setPendingSorcery } = useGame()
+    const { mana, landDeck1, landDeck2, selectedLandDeckIndex, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, centerTileControl, setCardPreview, pendingSorcery, setPendingSorcery } = useGame()
 
     const numRows = board.length;
     const numCols = board[0]?.length || 0;
@@ -20,11 +20,18 @@ function Board({ flipDirection, notify, wsRef }) {
 
         // If awaiting sorcery target selection
         if (pendingSorcery) {
+            console.log({
+                        type: 'resolve-sorcery',
+                        slot: pendingSorcery.slot,
+                        pos: pendingSorcery.pos,
+                        target: [x, y],
+                    })
             if (wsRef.current) {
                 wsRef.current.send(
                     JSON.stringify({
                         type: 'resolve-sorcery',
                         slot: pendingSorcery.slot,
+                        pos: pendingSorcery.pos,
                         target: [x, y],
                     })
                 );
@@ -35,11 +42,19 @@ function Board({ flipDirection, notify, wsRef }) {
         }
 
         const currentHand = userId === '1' ? hand1 : hand2;
-        const selectedCard = currentHand[selectedHandIndex];
+        const currentLandDeck = userId === '1' ? landDeck1 : landDeck2;
+
+        const selectedCard =
+            selectedHandIndex !== null
+                ? currentHand[selectedHandIndex]
+                : selectedLandDeckIndex !== null
+                    ? currentLandDeck[selectedLandDeckIndex]
+                    : null;
 
         // Card from hand is selected
-        if (selectedHandIndex !== null) {
+        if (selectedHandIndex !== null || selectedLandDeckIndex !== null) {
             if (!selectedCard) return;
+
             if (selectedCard.mana > mana[userId]) {
                 notify('red', 'Not enough mana to use this card.');
                 return;
@@ -101,7 +116,7 @@ function Board({ flipDirection, notify, wsRef }) {
                                 JSON.stringify({
                                     type: 'place-land',
                                     user_id: userId,
-                                    slot: selectedHandIndex,
+                                    slot: selectedLandDeckIndex,
                                     pos: [x, y],
                                 })
                             );
@@ -170,22 +185,22 @@ function Board({ flipDirection, notify, wsRef }) {
             }
         }
     };
-    
+
 
     const monsters = [];
     for (let y = 0; y < board.length; y++) {
-      for (let x = 0; x < board[y].length; x++) {
-        const card = board[y][x];
-    
-        if (card && card.type === 'monster') {
-          const x2 = userId === '2' ? 6 - x : x;
-          const y2 = userId === '2' ? 6 - y : y;
-          monsters.push({ card, x: x2, y: y2, realX: x, realY: y });
+        for (let x = 0; x < board[y].length; x++) {
+            const card = board[y][x];
+
+            if (card && card.type === 'monster') {
+                const x2 = userId === '2' ? 6 - x : x;
+                const y2 = userId === '2' ? 6 - y : y;
+                monsters.push({ card, x: x2, y: y2, realX: x, realY: y });
+            }
         }
-      }
     }
-    
-    
+
+
 
     return (
         <div
@@ -196,8 +211,8 @@ function Board({ flipDirection, notify, wsRef }) {
             }}
         >
             {monsters.map(({ card, x, y, realX, realY }) => (
-  <MonsterBoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} handleClick={() => handleCellClick(realY, realX)} />
-))}
+                <MonsterBoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} handleClick={() => handleCellClick(realY, realX)} />
+            ))}
             {rowRange.map((x) =>
                 colRange.map((y) => {
                     const cellKey = `${x}-${y}`;
@@ -215,10 +230,10 @@ function Board({ flipDirection, notify, wsRef }) {
                                 <div
                                     id="centerCounter"
                                     className={`center-counter ${centerTileControl['1'] > 0 && centerTileControl['2'] === 0
-                                            ? 'blue'
-                                            : centerTileControl['2'] > 0 && centerTileControl['1'] === 0
-                                                ? 'orange'
-                                                : ''
+                                        ? 'blue'
+                                        : centerTileControl['2'] > 0 && centerTileControl['1'] === 0
+                                            ? 'orange'
+                                            : ''
                                         }`}
                                 >
                                     {centerTileControl['1'] > 0
@@ -244,9 +259,9 @@ function Board({ flipDirection, notify, wsRef }) {
                                 const boardCard = board[x] ? board[x][y] : null;
                                 const cards = [landCard, boardCard];
                                 return cards.map((card) => {
-                                    if (!card || card.type === 'monster' ) return null;
+                                    if (!card || card.type === 'monster') return null;
                                     return (
-                                        <BoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection}/>
+                                        <BoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} />
                                     );
                                 });
                             })()}

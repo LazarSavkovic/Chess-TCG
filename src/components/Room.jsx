@@ -14,6 +14,7 @@ import TurnDetail from './TurnDetail';
 import Detail from './Detail';
 import Sounds from './Sounds';
 import TutoringTargets from './TutoringTargets';
+import LandDeckPopup from './LandDeckPopup';
 
 // Utility: Generate a simple unique ID (could be improved with a package like uuid)
 const generateTabId = () => 'tab-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -30,10 +31,15 @@ function Room() {
     setGraveyard1,
     graveyard2,
     setGraveyard2,
+    landDeck1,
+    setLandDeck1,
+    landDeck2,
+    setLandDeck2,
     setHand1,
     setHand2,
     setBoard,
     setDeckSizes,
+    mana,
     setMana,
     setLandBoard,
     setCenterTileControl,
@@ -54,7 +60,9 @@ function Room() {
     showTutoringPopup,
     setShowTutoringPopup,
     tutoringTargets,
-    setTutoringTargets
+    setTutoringTargets,
+    showLandDeck,
+    setShowLandDeck
   } = useGame()
   // -----------------------
   // Refs
@@ -114,15 +122,16 @@ function Room() {
 
       if (data.type === 'init') {
         localStorage.setItem('userAssignments', JSON.stringify(data.user_assignments))
+        localStorage.setItem('mana', JSON.stringify(data.mana))
         setUserId(data.user_assignments[username]);
       }
 
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-deck-tutoring') {
-        setPendingSorcery({ slot: data.slot, card_id: data.card_id });
-        
-        notify('yellow', `Select a target for ${data.card_id .split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
+        setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos  });
+
+        notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
         // Store valid target cells (as strings "x-y") to later highlight them
         showValidTutoringTargets(data.valid_tutoring_targets)
         return;
@@ -130,8 +139,8 @@ function Room() {
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-input') {
-        setPendingSorcery({ slot: data.slot, card_id: data.card_id });
-        notify('yellow', `Select a target for ${data.card_id .split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
+        setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos });
+        notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
         // Store valid target cells (as strings "x-y") to later highlight them
         setHighlightedCells(data.valid_targets.map(([x, y]) => `${x}-${y}`));
         return;
@@ -182,10 +191,34 @@ function Room() {
       if (data.hand1) setHand1(data.hand1);
       if (data.hand2) setHand2(data.hand2);
       if (data.deck_sizes) setDeckSizes(data.deck_sizes);
-      if (data.mana) setMana(data.mana);
+      if (data.mana) {
+        const prevMana = JSON.parse(localStorage.getItem('mana')) || {};
+
+        for (const key in data.mana) {
+          const newValue = data.mana[key];
+          const oldValue = prevMana[key] ?? 0;
+          const difference = newValue - oldValue;
+
+          if (difference !== 0) {
+            console.log('found difference');
+            const color = difference > 0 ? 'green' : 'red';
+            notify(color, difference);
+          }
+        }
+
+        // Update localStorage with the new mana
+        localStorage.setItem('mana', JSON.stringify(data.mana));
+
+        // Update React state
+        setMana(data.mana);
+      }
       if (data.graveyard) {
         setGraveyard1(data.graveyard['1'] || graveyard1);
         setGraveyard2(data.graveyard['2'] || graveyard2);
+      }
+      if (data.land_decks) {
+        setLandDeck1(data.land_decks['1'] || landDeck1);
+        setLandDeck2(data.land_decks['2'] || landDeck2);
       }
       if (data.moves_left !== undefined) setMovesLeft(data.moves_left);
 
@@ -342,6 +375,7 @@ function Room() {
 
   // Simple notification function (notifications auto-remove after 3 seconds)
   const notify = (color, message) => {
+    console.log('triggered with', message)
     const id = Date.now();
     setNotifications((prev) => [...prev, { id, color, message }]);
     setTimeout(() => {
@@ -365,9 +399,9 @@ function Room() {
   };
 
   function showValidTutoringTargets(cards) {
-  setTutoringTargets(cards);   // Set the valid tutoring targets (Card objects)
-  setShowTutoringPopup(true);          // Open the popup
-}
+    setTutoringTargets(cards);   // Set the valid tutoring targets (Card objects)
+    setShowTutoringPopup(true);          // Open the popup
+  }
 
   // Function to flip a direction string (used in board rendering)
   const flipDirection = (dir) => {
@@ -392,6 +426,16 @@ function Room() {
       <ConfirmationModal />
       <div className="left-sidebar">
         <Graveyards />
+
+
+        <div className="land-deck-preview" onClick={() => setShowLandDeck(true)}>
+          <div className="card-content placeholder-card">
+            <div className="title-bar">Land Deck</div>
+            <div className="card-image" style={{ backgroundColor: "#261a33", height: "8vw" }} />
+            <div className="rules-text" style={{ textAlign: 'center' }}>Click to view</div>
+          </div>
+        </div>
+
       </div>
       <div className="main">
         <div className="board-wrRoomer">
@@ -406,6 +450,7 @@ function Room() {
         <Detail />
       </div>
       <Sounds />
+      <LandDeckPopup />
       <TutoringTargets setShowTutoringPopup={setShowTutoringPopup} showTutoringPopup={showTutoringPopup} tutoringTargets={tutoringTargets} wsRef={wsRef} />
     </>
   );

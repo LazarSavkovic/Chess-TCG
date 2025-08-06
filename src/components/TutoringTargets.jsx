@@ -5,12 +5,12 @@ function TutoringTargets({ showTutoringPopup, setShowTutoringPopup, tutoringTarg
     const {pendingSorcery} = useGame()
 
     function handleTutoringSelect(cardId) {
-        console.log('tutoring', cardId, pendingSorcery)
         if (wsRef.current) {
             wsRef.current.send(
                 JSON.stringify({
                     type: 'resolve-sorcery',
                     slot: pendingSorcery.slot,
+                    pos: pendingSorcery.pos,
                     card_id: cardId,
                 })
             );

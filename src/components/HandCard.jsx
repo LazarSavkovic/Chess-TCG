@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 import Card from './Card';
 
 function HandCard({card, wsRef, i}) {
-    const { setCardPreview, setSelectedHandIndex, highlightPlaceActivateZones, highlightSummonZones,selectedHandIndex, apiUrl, pendingDiscard} = useGame()
+    const { setCardPreview, setSelectedLandDeckIndex, setSelectedHandIndex, highlightPlaceActivateZones, highlightSummonZones,selectedHandIndex, apiUrl, pendingDiscard} = useGame()
   return (
     <div
     id={`card-${card.id}`}
@@ -23,6 +23,7 @@ function HandCard({card, wsRef, i}) {
         }
       } else {
         setSelectedHandIndex(i);
+        setSelectedLandDeckIndex(null)
         if (card.type === 'monster') {
           highlightSummonZones();
         } else {
