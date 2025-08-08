@@ -6,8 +6,8 @@ export const useGame = () => useContext(GameContext);
 
 const GameProvider = ({ children }) => {
 
-  const apiUrl = 'http://127.0.0.1:5000'
-  const apiHost = '127.0.0.1:5000'
+  const apiHost = import.meta.env.VITE_API_HOST;
+
 
   const [userId, setUserId] = useState(null);
   const [board, setBoard] = useState([]);
