@@ -7,7 +7,7 @@ export const useGame = () => useContext(GameContext);
 const GameProvider = ({ children }) => {
 
   const apiHost = import.meta.env.VITE_API_HOST;
-
+  const apiUrl = `http://${apiHost}`
 
   const [userId, setUserId] = useState(null);
   const [board, setBoard] = useState([]);
@@ -235,8 +235,8 @@ const GameProvider = ({ children }) => {
         highlightMoves,
         highlightSummonZones,
         highlightPlaceActivateZones,
-        apiUrl,
         apiHost,
+        apiUrl,
         showTutoringPopup,
         setShowTutoringPopup,
         tutoringTargets,
