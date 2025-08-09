@@ -23,6 +23,13 @@ const GameProvider = ({ children }) => {
     return stored ? JSON.parse(stored) : { '1': 50, '2': 50 };
   });
 
+   // One-per-turn action flags coming from BE
+  const [actionsThisTurn, setActionsThisTurn] = useState({
+    '1': { summoned: false, sorcery_used: false, land_placed: false },
+    '2': { summoned: false, sorcery_used: false, land_placed: false },
+    current: { summoned: false, sorcery_used: false, land_placed: false },
+  });
+
   const [centerTileControl, setCenterTileControl] = useState({ '1': 0, '2': 0 });
   const [turn, setTurn] = useState('1');
   const [selectedHandIndex, setSelectedHandIndex] = useState(null);
@@ -244,7 +251,9 @@ const GameProvider = ({ children }) => {
         showLandDeck,
         setShowLandDeck,
         setSelectedLandDeckIndex,
-        selectedLandDeckIndex
+        selectedLandDeckIndex,
+         actionsThisTurn,
+         setActionsThisTurn
       }}
     >
       {children}

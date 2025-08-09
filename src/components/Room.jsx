@@ -62,7 +62,9 @@ function Room() {
     tutoringTargets,
     setTutoringTargets,
     showLandDeck,
-    setShowLandDeck
+    setShowLandDeck, 
+    actionsThisTurn, 
+    setActionsThisTurn
   } = useGame()
   // -----------------------
   // Refs
@@ -129,7 +131,7 @@ function Room() {
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-deck-tutoring') {
-        setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos  });
+        setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos });
 
         notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
         // Store valid target cells (as strings "x-y") to later highlight them
@@ -188,6 +190,11 @@ function Room() {
         }
         setTurn(data.turn);
       }
+
+      // One-per-turn action flags (per player + "current")
+      if (data.actions_this_turn) {
+        setActionsThisTurn(data.actions_this_turn);
+      }
       if (data.hand1) setHand1(data.hand1);
       if (data.hand2) setHand2(data.hand2);
       if (data.deck_sizes) setDeckSizes(data.deck_sizes);
@@ -202,7 +209,7 @@ function Room() {
           if (difference !== 0) {
             console.log('found difference');
             const color = difference > 0 ? 'green' : 'red';
-            notify(color, difference);
+            notify(color, `${difference} mana`);
           }
         }
 
@@ -258,7 +265,6 @@ function Room() {
             setTimeout(() => {
               cardEl.style.top = `${second}%`;
               playSound("deathSound");
-              notify('red', `- ${data.card.mana} mana`);
               setTimeout(() => {
                 cardEl.style.top = `${originalTop}%`;
               }, 300);
