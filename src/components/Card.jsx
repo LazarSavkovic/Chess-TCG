@@ -2,6 +2,14 @@ import React from 'react';
 import { useGame } from '../context/GameContext';
 
 function Card({ card, fontSize }) {
+      const ROLE_EMOJI = {
+      aggressor: '⚔️',
+      sentinel: '🛡️',
+      manipulator: '🧠',
+      walker: '🌀',
+      breaker: '☠️',
+    };
+
   const { apiUrl } = useGame();
 
   const renderArrows = () => {
@@ -44,6 +52,7 @@ function Card({ card, fontSize }) {
 
       <div className="card-content">
         <div className="title-bar">
+          {ROLE_EMOJI[card.role]}
           {card.name}
           <div className="mana-cost">🩸 {card.mana || 0}</div>
         </div>

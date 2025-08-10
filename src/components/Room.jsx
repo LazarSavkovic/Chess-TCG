@@ -436,18 +436,20 @@ function Room() {
 
         <div className="land-deck-preview" onClick={() => setShowLandDeck(true)}>
           <div className="card-content placeholder-card">
-            <div className="title-bar">Land Deck</div>
-            <div className="card-image" style={{ backgroundColor: "#261a33", height: "8vw" }} />
-            <div className="rules-text" style={{ textAlign: 'center' }}>Click to view</div>
+            
+            <div className="hand-card opponent-card" style={{ backgroundColor: "#261a33", height: "8vw" }} >
+              <h6 className="userH2" style={{color: 'gold', textAlign: 'center' }}>Land Deck</h6>
+            </div>
+            <div className="rules-text" >Click to view</div>
           </div>
         </div>
 
       </div>
       <div className="main">
         <div className="board-wrRoomer">
-          <OpponentHand />
+          {/* <OpponentHand /> */}
           <Board flipDirection={flipDirection} notify={notify} wsRef={wsRef} />
-          <Hand wsRef={wsRef} />
+          {/* <Hand wsRef={wsRef} /> */}
         </div>
       </div>
       <div className="right-sidebar">
@@ -455,6 +457,9 @@ function Room() {
         <TurnDetail handleEndTurn={handleEndTurn} />
         <Detail />
       </div>
+      <OpponentHand />
+      {/* <Board flipDirection={flipDirection} notify={notify} wsRef={wsRef} /> */}
+      <Hand wsRef={wsRef} />
       <Sounds />
       <LandDeckPopup />
       <TutoringTargets setShowTutoringPopup={setShowTutoringPopup} showTutoringPopup={showTutoringPopup} tutoringTargets={tutoringTargets} wsRef={wsRef} />

@@ -117,71 +117,92 @@ const GameProvider = ({ children }) => {
     setHighlightedCells(highlights);
   };
 
-  const highlightPlaceActivateZones = (i, land) => {
-    clearHighlights();
-    const currentHand = !land ? userId === '1' ? hand1 : hand2 : userId === '1' ? landDeck1 : landDeck2;
-    const card = currentHand[i];
-    if (!card || !Array.isArray(card.activation_needs || card.creation_needs)) return;
-    const needs = card.activation_needs || card.creation_needs;
-    const directions = {
-      "forward": userId === '1' ? [-1, 0] : [1, 0],
-      "back": userId === '1' ? [1, 0] : [-1, 0],
-      "left": userId === '1' ? [0, -1] : [0, 1],
-      "right": userId === '1' ? [0, 1] : [0, -1],
-      'forward-left': userId === '1' ? [-1, -1] : [1, 1],
-      'forward-right': userId === '1' ? [-1, 1] : [1, -1],
-      'back-left': userId === '1' ? [1, -1] : [-1, 1],
-      'back-right': userId === '1' ? [1, 1] : [-1, -1],
-    };
-    const flipDirection = {
-      "forward": 'back',
-      "back": 'forward',
-      "left": 'right',
-      "right": 'left',
-      'forward-left': 'back-right',
-      'forward-right': 'back-left',
-      'back-left': 'forward-right',
-      'back-right': 'forward-left',
-    };
-    let highlights = [];
-    for (let i = 0; i < board.length; i++) {
-      for (let j = 0; j < board[0].length; j++) {
-        let satisfiesAll = true;
-        for (const dir of needs) {
-          const [dx, dy] = directions[dir];
-          const tx = i + dx;
-          const ty = j + dy;
-          if (tx < 0 || tx >= board.length || ty < 0 || ty >= board[0].length) {
-            satisfiesAll = false;
-            break;
-          }
-          const neighbor = board[tx] ? board[tx][ty] : null;
-          const land = landBoard[tx] ? landBoard[tx][ty] : null;
-          let valid = false;
-          if (neighbor && neighbor.type === 'monster') {
-            const baseOpposite = flipDirection[dir];
-            const effectiveDir =
-              neighbor.owner === userId ? baseOpposite : flipDirection[baseOpposite];
-            const movementVal = neighbor.movement?.[effectiveDir];
-            if (movementVal === 1 || movementVal === 2 || movementVal === 'any') {
-              valid = true;
-            }
-          }
-          if (land && land.creation_needs?.includes(flipDirection[dir])) {
+const highlightPlaceActivateZones = (handIndex, land) => {
+  clearHighlights();
+  const currentHand = !land
+    ? (userId === '1' ? hand1 : hand2)
+    : (userId === '1' ? landDeck1 : landDeck2);
+
+  const card = currentHand[handIndex];
+  const needsArr = card?.activation_needs || card?.creation_needs;
+  if (!card || !Array.isArray(needsArr)) return;
+
+  const needs = needsArr;
+
+  const directions = {
+    forward:       userId === '1' ? [-1, 0] : [ 1, 0],
+    back:          userId === '1' ? [ 1, 0] : [-1, 0],
+    left:          userId === '1' ? [ 0,-1] : [ 0, 1],
+    right:         userId === '1' ? [ 0, 1] : [ 0,-1],
+    'forward-left': userId === '1' ? [-1,-1] : [ 1, 1],
+    'forward-right':userId === '1' ? [-1, 1] : [ 1,-1],
+    'back-left':    userId === '1' ? [ 1,-1] : [-1, 1],
+    'back-right':   userId === '1' ? [ 1, 1] : [-1,-1],
+  };
+
+  const flipDirection = {
+    forward: 'back',
+    back: 'forward',
+    left: 'right',
+    right: 'left',
+    'forward-left': 'back-right',
+    'forward-right': 'back-left',
+    'back-left': 'forward-right',
+    'back-right': 'forward-left',
+  };
+
+  const highlights = [];
+
+  for (let row = 0; row < board.length; row++) {
+    for (let col = 0; col < board[0].length; col++) {
+      let satisfiesAll = true;
+
+      for (const dir of needs) {
+        const [dx, dy] = directions[dir];
+        const tx = row + dx;
+        const ty = col + dy;
+
+        if (tx < 0 || tx >= board.length || ty < 0 || ty >= board[0].length) {
+          satisfiesAll = false;
+          break;
+        }
+
+        const neighbor = board[tx]?.[ty] || null;
+        const landTile = landBoard[tx]?.[ty] || null;
+
+        let valid = false;
+
+        // ✅ Only your monsters can satisfy needs
+        if (neighbor && neighbor.type === 'monster' && neighbor.owner === userId) {
+          const baseOpposite = flipDirection[dir];
+          // Check if the neighbor could step "back" toward (row,col)
+          const movementVal = neighbor.movement?.[baseOpposite];
+          if (movementVal === 1 || movementVal === 2 || movementVal === 'any') {
             valid = true;
           }
-          if (!valid) {
-            satisfiesAll = false;
-            break;
+        }
+
+        // ✅ Only your lands can satisfy needs
+        if (!valid && landTile && landTile.owner === userId) {
+          if (landTile.creation_needs?.includes(flipDirection[dir])) {
+            valid = true;
           }
         }
-        if (satisfiesAll) {
-          highlights.push(`${i}-${j}`);
+
+        if (!valid) {
+          satisfiesAll = false;
+          break;
         }
       }
+
+      if (satisfiesAll) {
+        highlights.push(`${row}-${col}`);
+      }
     }
-    setHighlightedCells(highlights);
-  };
+  }
+
+  setHighlightedCells(highlights);
+};
 
 
   return (

@@ -2,6 +2,13 @@ import React from 'react'
 import { useGame } from '../context/GameContext';
 
 function MonsterBoardCard({card, x, y, flipDirection, handleClick}) {
+    const ROLE_EMOJI = {
+      aggressor: '⚔️',
+      sentinel: '🛡️',
+      manipulator: '🧠',
+      walker: '🌀',
+      breaker: '☠️',
+    };
     const {lastSummonedPos, apiUrl, userId, setCardPreview} = useGame()
   return (
     <div
@@ -16,6 +23,12 @@ function MonsterBoardCard({card, x, y, flipDirection, handleClick}) {
     onMouseEnter={() => setCardPreview(card)}
     onClick={handleClick}
 >
+         {/* Role badge (monsters only) */}
+      {card.type === 'monster' && (
+        <div className={`role-badge ${card.role}-badge`} aria-label={card.role}>
+          {ROLE_EMOJI[card.role] || '🃏'}
+        </div>
+      )}
     <div className="card-image" style={{ backgroundImage: `url(${apiUrl}${card.image})`,  transform: card.owner !== userId ? 'scaleY(-1)' : 'none' }}></div>
     <div className="overlay"></div>
     <div className="card-name">{card.name}</div>

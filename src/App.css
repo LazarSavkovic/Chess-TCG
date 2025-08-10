@@ -8,6 +8,7 @@
   box-sizing: border-box;
 }
 
+
 body {
   margin: 0;
   padding: 0;
@@ -26,6 +27,7 @@ body {
   width: 100vw;
   margin: 0;
   overflow: hidden;
+  position: relative;
 }
 
 #board {
@@ -103,6 +105,9 @@ body {
 
 .detail, .opponentDetail, .turnDetail {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .right-sidebar h2 {
@@ -732,7 +737,7 @@ h5 {
 .play-card .title-bar {
   padding: 0.4em 0.6em;
   font-weight: bold;
-  font-size: 1em;
+  font-size: 0.9em;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -941,6 +946,44 @@ h5 {
   background: linear-gradient(to right, #5e5e5e, #8a8a8a);
   color: #f2f2f2;
 }
+
+
+/* Small emoji badge in the top-left */
+.role-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-size: 14px;
+  line-height: 1;
+  border: 1px solid rgba(0,0,0,0.25);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  z-index: 5;
+}
+
+/* Match your existing role themes for the badge */
+.aggressor-badge.role-badge {
+  background: #ff0000;
+  color: #fbe3e3;
+}
+.sentinel-badge.role-badge {
+  background: #e0e0e0;
+  color: #222121;
+}
+.manipulator-badge.role-badge {
+  background: #dc0bca;
+  color: #ffe6f5;
+}
+.walker-badge.role-badge {
+  background: #1072da;
+  color: #e3f2fd;
+}
+.breaker-badge.role-badge {
+  background: #272727;
+  color: #f2f2f2;
+}
+
 
 /* === Arrow Colors by Role === */
 

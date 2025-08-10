@@ -2,6 +2,26 @@ import React from 'react'
 import { useGame } from '../context/GameContext';
 
 function BoardCard({card, x, y, flipDirection}) {
+
+     const ROLE_COLOR = {
+      aggressor: 'red',
+      sentinel: 'white',
+      manipulator: 'pink',
+      walker: '#1072da',
+      breaker: 'black',
+    };
+
+    const ROLE_EMOJI = {
+      aggressor: '⚔️',
+      sentinel: '🛡️',
+      manipulator: '🧠',
+      walker: '🌀',
+      breaker: '☠️',
+    };
+
+
+console.log(card)
+
     const {lastSummonedPos, apiUrl, userId, setCardPreview} = useGame()
   return (
     <div
@@ -12,6 +32,12 @@ function BoardCard({card, x, y, flipDirection}) {
     title={card.name}
     onMouseEnter={() => setCardPreview(card)}
 >
+       {/* Role badge (lands only) */}
+      {card.type === 'land' && (
+        <div className={`role-badge ${card.role}-badge`} aria-label={card.role}>
+          {ROLE_EMOJI[card.role] || '🃏'}
+        </div>
+      )}
     <div className="card-image" style={{ backgroundImage: `url(${apiUrl}${card.image})`,  transform: card.owner !== userId ? 'scaleY(-1)' : 'none'  }}></div>
     <div className="overlay"></div>
     <div className="card-name">{card.name}</div>
@@ -68,7 +94,7 @@ function BoardCard({card, x, y, flipDirection}) {
                 <div
                     key={dir}
                     className={`movement movement-${finalDir}`}
-                    style={{ borderColor: 'white' }}
+                    style={{ borderColor: ROLE_COLOR[card.role] }}
                 ></div>
             );
         })}

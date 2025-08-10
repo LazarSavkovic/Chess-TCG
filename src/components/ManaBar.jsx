@@ -14,7 +14,7 @@ export default function ManaBar({ mana, isOpponent }) {
 
 
   return (
-    <div style={{ width: "200px", margin: '8px', backgroundColor: "#333", borderRadius: "8px", padding: "4px" }}>
+    <div style={{ width: "130%", margin: '8px', backgroundColor: "#333", borderRadius: "8px", padding: "4px" }}>
       <div
         style={{
           width: `${percentage}%`,

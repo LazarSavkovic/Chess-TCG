@@ -21,7 +21,7 @@ export default function TurnActions() {
   const activeColor = userId === "2" ? "#FFD700" : "#1E90FF"; // gold or blue
 
   return (
-    <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+    <div style={{ display: "flex", gap: 8, marginTop: 6, flexDirection: 'column', alignItems: 'center' }}>
       {items.map((it) => {
         const available = !it.used;
         return (
@@ -41,8 +41,8 @@ export default function TurnActions() {
               transition: "opacity 0.2s ease",
             }}
           >
-            <span style={{ fontSize: 16 }}>{it.emoji}</span>
-            <span>{it.label}</span>
+            <span style={{ fontSize: 16, color:  userId === "1" ? "white" : 'black' }}>{it.emoji}</span>
+            <span  style={{ fontSize: 16, color:  userId === "1" ? "white" : 'black' }}>{it.label}</span>
           </div>
         );
       })}
