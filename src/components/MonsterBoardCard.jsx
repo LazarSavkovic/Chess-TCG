@@ -2,12 +2,12 @@ import React from 'react'
 import { useGame } from '../context/GameContext';
 
 function MonsterBoardCard({ card, x, y, flipDirection, handleClick }) {
-    const ROLE_EMOJI = {
-        red: '⚔️',
-        white: '🛡️',
-        blue: '🌀',
-        black: '☠️',
-    };
+const ROLE_EMOJI = {
+  red: '🔴',
+  white: '⚪',
+  blue: '🔵',
+  black: '⚫',
+};
 
          const ROLE_COLOR = {
       red: 'red',

@@ -3,12 +3,13 @@ import { useGame } from '../context/GameContext';
 import { ArrowDoubleSVG, ArrowSingleSVG } from './ArrowSVG';
 
 function Card({ card, fontSize }) {
-  const ROLE_EMOJI = {
-    red: '⚔️',
-    white: '🛡️',
-    blue: '🌀',
-    black: '☠️',
-  };
+const ROLE_EMOJI = {
+  red: '🔴',
+  white: '⚪',
+  blue: '🔵',
+  black: '⚫',
+};
+
 
   const { apiUrl } = useGame();
 
@@ -66,11 +67,6 @@ function Card({ card, fontSize }) {
     >
 
       <div className="card-content">
-        <div className="title-bar">
-          {ROLE_EMOJI[card.role]}
-          {card.name}
-          <div className="mana-cost">🩸 {card.mana || 0}</div>
-        </div>
 
         <div
           className="card-image"
@@ -80,6 +76,11 @@ function Card({ card, fontSize }) {
             backgroundPosition: 'center',
           }}
         ></div>
+                <div className="title-bar">
+          {ROLE_EMOJI[card.role]}
+          {card.name}
+          <div className="mana-cost">🩸 {card.mana || 0}</div>
+        </div>
 
         {/* 🧭 Arrows container */}
         <div className="directional-arrows">{renderArrows()}</div>

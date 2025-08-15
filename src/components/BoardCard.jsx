@@ -11,10 +11,10 @@ function BoardCard({card, x, y, flipDirection}) {
     };
 
     const ROLE_EMOJI = {
-      red: '⚔️',
-      white: '🛡️',
-      blue: '🌀',
-      black: '☠️',
+  red: '🔴',
+  white: '⚪',
+  blue: '🔵',
+  black: '⚫',
     };
 
 

@@ -786,6 +786,7 @@ h5 {
   border-radius: 0.6em;
   box-shadow: 0 0 0.75em rgba(0, 0, 0, 0.6);
   position: relative;
+  padding: 0.4em;
 }
 
 .play-card .card-content {
@@ -794,7 +795,6 @@ h5 {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 .play-card .title-bar {
@@ -864,26 +864,22 @@ h5 {
 .play-card .arrow.back { bottom: -0.5em; left: 50%; transform: translateX(-50%) rotate(45deg); }
 .play-card .arrow.left   { left: -0.5em; top: 50%; transform: translateY(-50%) rotate(45deg); }
 .play-card .arrow.right  { right: -0.5em; top: 50%; transform: translateY(-50%) rotate(45deg); }
-.play-card .arrow.forward-left  { top: -0.5em; left: -0.5em; transform: scale(1.6) rotate(45deg); }
-.play-card .arrow.forward-right  { top: -0.5em; right: -0.5em; transform: scale(1.6) rotate(45deg); }
-.play-card .arrow.back-left { bottom: -0.5em; left: -0.5em; transform: scale(1.6) rotate(45deg); }
-.play-card .arrow.back-right  { bottom: -0.5em; right: -0.5em; transform: scale(1.6) rotate(45deg); }
+.play-card .arrow.forward-left  { top: -0.5em; left: -0.5em; transform:  rotate(45deg); }
+.play-card .arrow.forward-right  { top: -0.5em; right: -0.5em; transform:  rotate(45deg); }
+.play-card .arrow.back-left { bottom: -0.5em; left: -0.5em; transform: rotate(45deg); }
+.play-card .arrow.back-right  { bottom: -0.5em; right: -0.5em; transform:  rotate(45deg); }
 
-.play-card .arrow.forward2       { top: 1em; left: 50%; transform: translateX(-50%) rotate(45deg); }
-.play-card .arrow.back2          { bottom: 1em; left: 50%; transform: translateX(-50%) rotate(45deg); }
-.play-card .arrow.left2          { left: 1em; top: 50%; transform: translateY(-50%) rotate(45deg); }
-.play-card .arrow.right2         { right: 1em; top: 50%; transform: translateY(-50%) rotate(45deg); }
+.play-card .arrow.forward2       { top: 0.8em; left: 50%; transform: translateX(-50%) rotate(45deg); }
+.play-card .arrow.back2          { bottom: 0.8em; left: 50%; transform: translateX(-50%) rotate(45deg); }
+.play-card .arrow.left2          { left: 0.8em; top: 50%; transform: translateY(-50%) rotate(45deg); }
+.play-card .arrow.right2         { right: 0.8em; top: 50%; transform: translateY(-50%) rotate(45deg); }
 
-.play-card .arrow.forward-left2  { top: 1em; left: 1em; transform: scale(1.6) rotate(45deg); }
-.play-card .arrow.forward-right2 { top: 1em; right: 1em; transform: scale(1.6) rotate(45deg); }
-.play-card .arrow.back-left2     { bottom: 1em; left: 1em; transform: scale(1.6) rotate(45deg); }
-.play-card .arrow.back-right2    { bottom: 1em; right: 1em; transform: scale(1.6) rotate(45deg); }
+.play-card .arrow.forward-left2  { top: 0.8em; left: 0.8em; transform:  rotate(45deg); }
+.play-card .arrow.forward-right2 { top: 0.8em; right: 0.8em; transform: rotate(45deg); }
+.play-card .arrow.back-left2     { bottom: 0.8em; left: 0.8em; transform:  rotate(45deg); }
+.play-card .arrow.back-right2    { bottom: 0.8em; right: 0.8em; transform:  rotate(45deg); }
 
 
-.play-card .arrow.yellow {
-  background: radial-gradient(circle at center, #ffe249, #e0b300);
-  opacity: 0.9;
-}
 
 .play-card .arrow.red {
   background: radial-gradient(circle at center, #ff4747, #b60000);
@@ -1047,28 +1043,31 @@ h5 {
 
 
 /* === Arrow Colors by Role === */
-
 .arrow.red {
   background-color: #e84545; /* Crimson Red */
-  box-shadow: 0 0 4px 2px rgba(232, 69, 69, 0.5);
+  box-shadow: 0 0 6px 2px rgba(232, 69, 69, 0.6); /* brighter */
+  border: 1px solid #ff9b9b;
 }
 
 .arrow.white {
-  background-color: #f4f4f4; /* Off-White / Silver */
-  box-shadow: 0 0 4px 2px rgba(255, 255, 255, 0.3);
+  background-color: #f4f4f4; /* Off-White */
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.6);
+  border: 1px solid #bbbbbb;
 }
-
 
 .arrow.blue {
-  background-color: #64c3d4; /* Cool Aqua */
-  box-shadow: 0 0 4px 2px rgba(100, 195, 212, 0.4);
+  background-color: #3b82f6; /* Modern blue (Tailwind's blue-500) */
+  box-shadow: 0 0 6px 2px rgba(59, 130, 246, 0.6);
+  border: 1px solid #a4c8ff;
 }
+
 
 .arrow.black {
   background-color: #000000; /* Pure black */
-  border: 1px solid #9c9c9c; /* Bright lime/yellow-green for contrast */
-  box-shadow: 0 0 6px 2px rgba(208, 255, 58, 0.3); /* subtle glow */
+  box-shadow: 0 0 6px 2px rgba(208, 255, 58, 0.5);
+  border: 1px solid #d0ff3a;
 }
+
 
 
 /* Fallback for cards with no role */
