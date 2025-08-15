@@ -5,9 +5,9 @@ import MonsterBoardCard from './MonsterBoardCard';
 
 
 
-const cellSize = 10; // in vh units
+const cellSize = 12.5; // in vh units
 function Board({ flipDirection, notify, wsRef }) {
-    const { setSelectedLandDeckIndex,  mana, landDeck1, landDeck2, selectedLandDeckIndex, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, centerTileControl, setCardPreview, pendingSorcery, setPendingSorcery } = useGame()
+    const { setSelectedLandDeckIndex,  mana, landDeck1, landDeck2, selectedLandDeckIndex, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, setCardPreview, pendingSorcery, setPendingSorcery } = useGame()
 
     const numRows = board.length;
     const numCols = board[0]?.length || 0;
@@ -60,9 +60,8 @@ function Board({ flipDirection, notify, wsRef }) {
                 return;
             }
             if (selectedCard.type === 'monster') {
-                const validCols = [0, 3, 6];
-                const summonRow = userId === '1' ? 6 : 0;
-                if (x === summonRow && validCols.includes(y)) {
+                const summonRow = userId === '1' ? 5 : 0;
+                if (x === summonRow) {
                     confirmAction(
                         `Spend ${selectedCard.mana} mana to summon ${selectedCard.name}?`,
                         'Yes, summon!',
@@ -151,7 +150,7 @@ function Board({ flipDirection, notify, wsRef }) {
             clearHighlights();
         } else {
             if (cellCard && cellCard.owner === userId) {
-                const backRow = userId === '1' ? 0 : 6;
+                const backRow = userId === '1' ? 0 : 5;
                 // Direct attack condition if clicking on back row
                 if (x === backRow) {
                     confirmAction(
@@ -193,8 +192,8 @@ function Board({ flipDirection, notify, wsRef }) {
             const card = board[y][x];
 
             if (card && card.type === 'monster') {
-                const x2 = userId === '2' ? 6 - x : x;
-                const y2 = userId === '2' ? 6 - y : y;
+                const x2 = userId === '2' ? 5 - x : x;
+                const y2 = userId === '2' ? 5 - y : y;
                 monsters.push({ card, x: x2, y: y2, realX: x, realY: y });
             }
         }
@@ -218,6 +217,7 @@ function Board({ flipDirection, notify, wsRef }) {
                     const cellKey = `${x}-${y}`;
                     const cellClass = (x + y) % 2 === 0 ? 'white' : 'black';
                     const isHighlighted = highlightedCells.includes(cellKey);
+                    if (isHighlighted) console.log(cellKey);
                     return (
                         <div
                             key={cellKey}
@@ -226,23 +226,7 @@ function Board({ flipDirection, notify, wsRef }) {
                             data-y={y}
                             onClick={() => handleCellClick(x, y)}
                         >
-                            {x === 3 && y === 3 && (
-                                <div
-                                    id="centerCounter"
-                                    className={`center-counter ${centerTileControl['1'] > 0 && centerTileControl['2'] === 0
-                                        ? 'blue'
-                                        : centerTileControl['2'] > 0 && centerTileControl['1'] === 0
-                                            ? 'orange'
-                                            : ''
-                                        }`}
-                                >
-                                    {centerTileControl['1'] > 0
-                                        ? centerTileControl['1']
-                                        : centerTileControl['2'] > 0
-                                            ? centerTileControl['2']
-                                            : 0}
-                                </div>
-                            )}
+                            
                             <div
                                 className="cell-overlay"
                                 style={

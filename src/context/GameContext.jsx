@@ -30,7 +30,6 @@ const GameProvider = ({ children }) => {
     current: { summoned: false, sorcery_used: false, land_placed: false },
   });
 
-  const [centerTileControl, setCenterTileControl] = useState({ '1': 0, '2': 0 });
   const [turn, setTurn] = useState('1');
   const [selectedHandIndex, setSelectedHandIndex] = useState(null);
   const [selectedLandDeckIndex, setSelectedLandDeckIndex] = useState(null);
@@ -109,13 +108,13 @@ const GameProvider = ({ children }) => {
     setHighlightedCells(highlights);
   };
 
-  // Highlight summon zones (for monsters) and place/activate zones (for sorcery/land)
-  const highlightSummonZones = () => {
-    const validCols = [0, 3, 6];
-    const summonRow = userId === '1' ? 6 : 0;
-    let highlights = validCols.map((col) => `${summonRow}-${col}`);
-    setHighlightedCells(highlights);
-  };
+// Highlight summon zones (for monsters) and place/activate zones (for sorcery/land)
+const highlightSummonZones = () => {
+  const summonRow = userId === '1' ? 5 : 0;
+  let highlights = Array.from({ length: 6 }, (_, col) => `${summonRow}-${col}`);
+  console.log(highlights)
+  setHighlightedCells(highlights);
+};
 
 const highlightPlaceActivateZones = (handIndex, land) => {
   clearHighlights();
@@ -222,8 +221,6 @@ const highlightPlaceActivateZones = (handIndex, land) => {
         setHand2,
         mana,
         setMana,
-        centerTileControl,
-        setCenterTileControl,
         graveyard1,
         setGraveyard1,
         graveyard2,

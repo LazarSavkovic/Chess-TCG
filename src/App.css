@@ -36,6 +36,7 @@ body {
   flex-direction: row;
   justify-content: space-between;
   position: relative;
+  margin-top: -13.5%;
 }
 
 .main,
@@ -318,6 +319,68 @@ h5 {
   border-width: 0 0.6vw 0.6vw 0;
   border-color: transparent red transparent transparent;
 }
+
+
+.movement-forward2 { 
+  top: 5%;
+  left: 50%;
+  border-width: 0.6vw 0.4vw 0 0.4vw;
+  border-color: red transparent transparent transparent;
+  transform: translateX(-50%);
+}
+
+.movement-back2 { 
+  bottom: 8%;
+  left: 50%;
+  border-width: 0 0.4vw 0.6vw 0.4vw;
+  border-color: transparent transparent red transparent;
+  transform: translateX(-50%);
+}
+
+.movement-left2 { 
+  left: 8%;
+  top: 50%;
+  border-width: 0.4vw 0 0.4vw 0.6vw;
+  border-color: transparent transparent transparent red;
+  transform: translateY(-50%);
+}
+
+.movement-right2 { 
+  right: 8%;
+  top: 50%;
+  border-width: 0.4vw 0.6vw 0.4vw 0;
+  border-color: transparent red transparent transparent;
+  transform: translateY(-50%);
+}
+
+.movement-forward-left2 { 
+  top: 8%;
+  left: 8%;
+  border-width: 0.6vw 0 0 0.6vw;
+  border-color: red transparent transparent transparent;
+}
+
+.movement-forward-right2 { 
+  top: 8%;
+  right: 8%;
+  border-width: 0.6vw 0.6vw 0 0;
+  border-color: red transparent transparent transparent;
+}
+
+.movement-back-left2 { 
+  bottom: 8%;
+  left: 8%;
+  border-width: 0 0 0.6vw 0.6vw;
+  border-color: transparent transparent red transparent;
+}
+
+.movement-back-right2 { 
+  bottom: 8%;
+  right: 8%;
+  border-width: 0 0.6vw 0.6vw 0;
+  border-color: transparent red transparent transparent;
+}
+
 
 
 .card-frame {
@@ -806,6 +869,17 @@ h5 {
 .play-card .arrow.back-left { bottom: -0.5em; left: -0.5em; transform: scale(1.6) rotate(45deg); }
 .play-card .arrow.back-right  { bottom: -0.5em; right: -0.5em; transform: scale(1.6) rotate(45deg); }
 
+.play-card .arrow.forward2       { top: 1em; left: 50%; transform: translateX(-50%) rotate(45deg); }
+.play-card .arrow.back2          { bottom: 1em; left: 50%; transform: translateX(-50%) rotate(45deg); }
+.play-card .arrow.left2          { left: 1em; top: 50%; transform: translateY(-50%) rotate(45deg); }
+.play-card .arrow.right2         { right: 1em; top: 50%; transform: translateY(-50%) rotate(45deg); }
+
+.play-card .arrow.forward-left2  { top: 1em; left: 1em; transform: scale(1.6) rotate(45deg); }
+.play-card .arrow.forward-right2 { top: 1em; right: 1em; transform: scale(1.6) rotate(45deg); }
+.play-card .arrow.back-left2     { bottom: 1em; left: 1em; transform: scale(1.6) rotate(45deg); }
+.play-card .arrow.back-right2    { bottom: 1em; right: 1em; transform: scale(1.6) rotate(45deg); }
+
+
 .play-card .arrow.yellow {
   background: radial-gradient(circle at center, #ffe249, #e0b300);
   opacity: 0.9;
@@ -822,22 +896,23 @@ h5 {
 }
 
 /* === THEMES === */
-
 /* MONSTER */
 .monster-card {
-  background: #2d1a12;
-  border-color: #7e3f1c;
+  background: #e4ddc5; /* darker parchment base */
+  border-color: #7f745c; /* deeper tan border */
 }
 
 .monster-card .title-bar,
 .monster-card .stats-bar {
-  background: linear-gradient(to right, #8c3a16, #b1602d);
-  color: #e7d0b2;
+  background: linear-gradient(to right, #d6c9a7, #b9a87f); /* aged parchment gradient */
+  color: #4a3a24; /* deeper sepia for better contrast */
 }
 
 .monster-card .mana-cost {
-  color: #e7d0b2;
+  color: #4a3a24; /* consistent with text color */
 }
+
+
 
 
 /* SORCERY */
@@ -885,64 +960,53 @@ h5 {
 /* === MONSTER ROLES === */
 
 /* ⚔️ Aggressor */
-.aggressor-monster {
+.red-monster {
   background: #4a1313;
   border-color: #992222;
 }
 
-.aggressor-monster .title-bar,
-.aggressor-monster .stats-bar {
+.red-monster .title-bar,
+.red-monster .stats-bar {
   background: linear-gradient(to right, #aa2c2c, #e05353);
   color: #fbe3e3;
 }
 
 /* 🛡️ Sentinel */
-.sentinel-monster {
+.white-monster {
   background: #f1f1f1;
   border-color: #808080;
 }
 
-.sentinel-monster .title-bar,
-.sentinel-monster .stats-bar {
+.white-monster .title-bar,
+.white-monster .stats-bar {
   background: linear-gradient(to right, #e0e0e0, #ffffff);
   color: #333333;
 }
 
 
-/* 🧠 Manipulator */
-.manipulator-monster {
-  background: #3b1f3f;
-  border-color: #ad4da7;
-}
-
-.manipulator-monster .title-bar,
-.manipulator-monster .stats-bar {
-  background: linear-gradient(to right, #b257aa, #e28bd1);
-  color: #ffe6f5;
-}
 
 
 /* 🌀 Walker */
-.walker-monster {
+.blue-monster {
   background: #1b2a40; /* Deep cool blue */
   border-color: #3c7cc2; /* Soft mid-blue */
 }
 
-.walker-monster .title-bar,
-.walker-monster .stats-bar {
+.blue-monster .title-bar,
+.blue-monster .stats-bar {
   background: linear-gradient(to right, #3c7cc2, #6eaee8); /* Calm cool gradient */
   color: #e3f2fd; /* Light ice blue text */
 }
 
 
 /* ☠️ Breaker */
-.breaker-monster {
+.black-monster {
   background: #212121;
   border-color: #464646;
 }
 
-.breaker-monster .title-bar,
-.breaker-monster .stats-bar {
+.black-monster .title-bar,
+.black-monster .stats-bar {
   background: linear-gradient(to right, #5e5e5e, #8a8a8a);
   color: #f2f2f2;
 }
@@ -963,23 +1027,20 @@ h5 {
 }
 
 /* Match your existing role themes for the badge */
-.aggressor-badge.role-badge {
+.red-badge.role-badge {
   background: #ff0000;
   color: #fbe3e3;
 }
-.sentinel-badge.role-badge {
+.white-badge.role-badge {
   background: #e0e0e0;
   color: #222121;
 }
-.manipulator-badge.role-badge {
-  background: #dc0bca;
-  color: #ffe6f5;
-}
-.walker-badge.role-badge {
+
+.blue-badge.role-badge {
   background: #1072da;
   color: #e3f2fd;
 }
-.breaker-badge.role-badge {
+.black-badge.role-badge {
   background: #272727;
   color: #f2f2f2;
 }
@@ -987,27 +1048,23 @@ h5 {
 
 /* === Arrow Colors by Role === */
 
-.arrow.aggressor {
+.arrow.red {
   background-color: #e84545; /* Crimson Red */
   box-shadow: 0 0 4px 2px rgba(232, 69, 69, 0.5);
 }
 
-.arrow.sentinel {
+.arrow.white {
   background-color: #f4f4f4; /* Off-White / Silver */
   box-shadow: 0 0 4px 2px rgba(255, 255, 255, 0.3);
 }
 
-.arrow.manipulator {
-  background-color: #e28bd1; /* Soft Magenta */
-  box-shadow: 0 0 4px 2px rgba(226, 139, 209, 0.4);
-}
 
-.arrow.walker {
+.arrow.blue {
   background-color: #64c3d4; /* Cool Aqua */
   box-shadow: 0 0 4px 2px rgba(100, 195, 212, 0.4);
 }
 
-.arrow.breaker {
+.arrow.black {
   background-color: #000000; /* Pure black */
   border: 1px solid #9c9c9c; /* Bright lime/yellow-green for contrast */
   box-shadow: 0 0 6px 2px rgba(208, 255, 58, 0.3); /* subtle glow */
@@ -1024,8 +1081,8 @@ h5 {
 
 .monster {
   position: absolute;
-  width: 14%;
-  height: 14%;
+  width: 16.5%;
+  height: 16.5%;
   transition: top 0.3s ease, left 0.3s ease;
   will-change: top, left;
   transform: scale(98%);

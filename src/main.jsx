@@ -2,13 +2,17 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import  GameProvider  from './context/GameContext.jsx'
+import GameProvider from './context/GameContext.jsx'
+import { BrowserRouter as Router } from 'react-router-dom'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <GameProvider >
-    <App />
-    </GameProvider>
-    
+    <Router>
+      <GameProvider >
+        <App />
+      </GameProvider>
+    </Router>
+
+
   </StrictMode>,
 )

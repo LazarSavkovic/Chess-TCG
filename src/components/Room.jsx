@@ -42,7 +42,6 @@ function Room() {
     mana,
     setMana,
     setLandBoard,
-    setCenterTileControl,
     setTurn,
     setSelectedHandIndex,
     setLastSummonedPos,
@@ -181,7 +180,6 @@ function Room() {
       }
 
       if (data.land_board) setLandBoard(data.land_board);
-      if (data.center_tile_control) setCenterTileControl(data.center_tile_control);
       if (data.turn) {
         const userAsignments = JSON.parse(localStorage.getItem('userAssignments'));
         const username = localStorage.getItem('username');

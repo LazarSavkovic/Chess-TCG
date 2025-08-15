@@ -1,14 +1,14 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
+import { ArrowDoubleSVG, ArrowSingleSVG } from './ArrowSVG';
 
 function Card({ card, fontSize }) {
-      const ROLE_EMOJI = {
-      aggressor: '⚔️',
-      sentinel: '🛡️',
-      manipulator: '🧠',
-      walker: '🌀',
-      breaker: '☠️',
-    };
+  const ROLE_EMOJI = {
+    red: '⚔️',
+    white: '🛡️',
+    blue: '🌀',
+    black: '☠️',
+  };
 
   const { apiUrl } = useGame();
 
@@ -21,32 +21,47 @@ function Card({ card, fontSize }) {
           arrows.push(
             <div
               key={`movement-${dir}`}
-              className={`arrow ${dir} ${card.movement[dir] === 2 ? 'red' : 'yellow'
-                }`}
+              className={`arrow ${dir} ${card.role || 'white'}`}
             ></div>
           );
+
+          if (card.movement[dir] === 2) {
+            arrows.push(
+              <div
+                key={`movement-${dir}-2`}
+                className={`arrow ${dir}2 ${card.role || 'white'}`}
+              ></div>
+            );
+          }
         }
       }
     } else if (card.type === 'sorcery' && Array.isArray(card.activation_needs)) {
       for (const dir of card.activation_needs) {
         arrows.push(
-          <div key={`sorcery-${dir}`} className={`arrow ${dir} ${card.role || 'white'}`}></div>
+          <div
+            key={`sorcery-${dir}`}
+            className={`arrow ${dir} ${card.role || 'white'}`}
+          ></div>
         );
       }
     } else if (card.type === 'land' && Array.isArray(card.creation_needs)) {
       for (const dir of card.creation_needs) {
         arrows.push(
-          <div key={`land-${dir}`} className={`arrow ${dir} ${card.role || 'white'}`}></div>
+          <div
+            key={`land-${dir}`}
+            className={`arrow ${dir} ${card.role || 'white'}`}
+          ></div>
         );
       }
     }
+
 
     return arrows;
   };
 
   return (
     <div
-      className={`play-card ${card.type}-card ${card.role ? `${card.role}-${card.type}` : ''}`}
+      className={`play-card ${card.type}-card`}
       style={{ fontSize }}
     >
 

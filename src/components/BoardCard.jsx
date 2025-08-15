@@ -4,19 +4,17 @@ import { useGame } from '../context/GameContext';
 function BoardCard({card, x, y, flipDirection}) {
 
      const ROLE_COLOR = {
-      aggressor: 'red',
-      sentinel: 'white',
-      manipulator: 'pink',
-      walker: '#1072da',
-      breaker: 'black',
+      red: 'red',
+      white: 'white',
+      blue: '#1072da',
+      black : 'black',
     };
 
     const ROLE_EMOJI = {
-      aggressor: '⚔️',
-      sentinel: '🛡️',
-      manipulator: '🧠',
-      walker: '🌀',
-      breaker: '☠️',
+      red: '⚔️',
+      white: '🛡️',
+      blue: '🌀',
+      black: '☠️',
     };
 
 
