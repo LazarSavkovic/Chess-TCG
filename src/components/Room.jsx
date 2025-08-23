@@ -135,11 +135,11 @@ function Room() {
         let activatedId = `card-${activatedCard.id}`
         let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
         // wait until the animation completes before moving on
-        await moveElementOver(activatedId, targetCellID, 300, {
-          hideSource: true,
-          positionMode: 'absolute', // ← try this
-          debug: true
-        });
+        // await moveElementOver(activatedId, targetCellID, 300, {
+        //   hideSource: true,
+        //   positionMode: 'absolute', // ← try this
+        //   debug: true
+        // });
         setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos });
 
         notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
@@ -154,12 +154,12 @@ function Room() {
         let activatedId = `card-${activatedCard.id}`
         let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
         // wait until the animation completes before moving on
-        await moveElementOver(activatedId, targetCellID, 300, {
-          hideSource: true,
-          positionMode: 'absolute',   // if 'fixed' acts weird in your layout
-          removeSource: 'remove',     // don't bring the original back
-          debug: true
-        });
+        // await moveElementOver(activatedId, targetCellID, 300, {
+        //   hideSource: true,
+        //   positionMode: 'absolute',   // if 'fixed' acts weird in your layout
+        //   removeSource: 'remove',     // don't bring the original back
+        //   debug: true
+        // });
 
         // 2) Optimistically place the card on the board at data.pos
         setBoard(prev => {
@@ -198,12 +198,12 @@ function Room() {
           let summonedId = `card-${summonedMonster.id}`
           let targetCellID = `cell-${data.to[0]}-${data.to[1]}`
           // wait until the animation completes before moving on
-          await moveElementOver(summonedId, targetCellID, 300, {
-            hideSource: true,
-            positionMode: 'absolute',   // if 'fixed' acts weird in your layout
-            removeSource: 'remove',     // don't bring the original back
-            debug: true
-          });
+          // await moveElementOver(summonedId, targetCellID, 300, {
+          //   hideSource: true,
+          //   positionMode: 'absolute',   // if 'fixed' acts weird in your layout
+          //   removeSource: 'remove',     // don't bring the original back
+          //   debug: true
+          // });
           playSound("spawnSound");
 
         } else {

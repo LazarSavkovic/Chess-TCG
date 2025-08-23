@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { computeLSHighlights } from '../util/highlightsLS';
 
 const GameContext = createContext();
 
@@ -23,7 +24,7 @@ const GameProvider = ({ children }) => {
     return stored ? JSON.parse(stored) : { '1': 50, '2': 50 };
   });
 
-   // One-per-turn action flags coming from BE
+  // One-per-turn action flags coming from BE
   const [actionsThisTurn, setActionsThisTurn] = useState({
     '1': { summoned: false, sorcery_used: false, land_placed: false },
     '2': { summoned: false, sorcery_used: false, land_placed: false },
@@ -41,6 +42,8 @@ const GameProvider = ({ children }) => {
   const [deckSizes, setDeckSizes] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [highlightedCells, setHighlightedCells] = useState([]); // Array of "x-y" strings for highlighted cells
+  const [highlightMap, setHighlightMap] = useState({});
+
   const [notifications, setNotifications] = useState([]);
   const [confirmation, setConfirmation] = useState(null);
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
@@ -59,6 +62,7 @@ const GameProvider = ({ children }) => {
   // -----------------------
   const clearHighlights = () => {
     setHighlightedCells([]);
+    setHighlightMap({});
   };
   // Confirmation overlay: stores message and callbacks
   const confirmAction = (message, yesMessage, noMessage, onYes, onNo = () => { }) => {
@@ -72,136 +76,106 @@ const GameProvider = ({ children }) => {
   };
 
 
-  // Highlight moves available from board position (x, y) for a given card
-  const highlightMoves = (x, y, card) => {
-    clearHighlights();
-    const directions = {
-      forward: userId === '1' ? [-1, 0] : [1, 0],
-      back: userId === '1' ? [1, 0] : [-1, 0],
-      left: userId === '1' ? [0, -1] : [0, 1],
-      right: userId === '1' ? [0, 1] : [0, -1],
-      'forward-left': userId === '1' ? [-1, -1] : [1, 1],
-      'forward-right': userId === '1' ? [-1, 1] : [1, -1],
-      'back-left': userId === '1' ? [1, -1] : [-1, 1],
-      'back-right': userId === '1' ? [1, 1] : [-1, -1],
-    };
-    const maxRange = 7;
-    let highlights = [];
-    for (const dir in card.movement) {
-      const vector = directions[dir];
-      if (!vector) continue;
-      const range = card.movement[dir] === 'any' ? maxRange : card.movement[dir];
-      for (let step = 1; step <= range; step++) {
-        const nx = x + vector[0] * step;
-        const ny = y + vector[1] * step;
-        if (nx < 0 || nx >= board.length || ny < 0 || ny >= (board[0]?.length || 0)) break;
-        const cellId = `${nx}-${ny}`;
-        if (board[nx] && board[nx][ny]) {
-          if (board[nx][ny].owner !== userId) {
-            highlights.push(cellId);
-          }
-          break;
-        }
-        highlights.push(cellId);
-      }
-    }
-    setHighlightedCells(highlights);
-  };
-
-// Highlight summon zones (for monsters) and place/activate zones (for sorcery/land)
-const highlightSummonZones = () => {
-  const summonRow = userId === '1' ? 5 : 0;
-  let highlights = Array.from({ length: 6 }, (_, col) => `${summonRow}-${col}`);
-  console.log(highlights)
-  setHighlightedCells(highlights);
-};
-
-const highlightPlaceActivateZones = (handIndex, land) => {
+// Moves are always FREE
+const highlightMoves = (x, y, card) => {
   clearHighlights();
-  const currentHand = !land
-    ? (userId === '1' ? hand1 : hand2)
-    : (userId === '1' ? landDeck1 : landDeck2);
 
-  const card = currentHand[handIndex];
-  const needsArr = card?.activation_needs || card?.creation_needs;
-  if (!card || !Array.isArray(needsArr)) return;
-
-  const needs = needsArr;
+  if (!board?.length || !board[0]?.length || !card?.movement) {
+    setHighlightMap({});
+    setHighlightedCells([]);
+    return;
+  }
 
   const directions = {
-    forward:       userId === '1' ? [-1, 0] : [ 1, 0],
-    back:          userId === '1' ? [ 1, 0] : [-1, 0],
-    left:          userId === '1' ? [ 0,-1] : [ 0, 1],
-    right:         userId === '1' ? [ 0, 1] : [ 0,-1],
+    forward:        userId === '1' ? [-1, 0] : [ 1, 0],
+    back:           userId === '1' ? [ 1, 0] : [-1, 0],
+    left:           userId === '1' ? [ 0,-1] : [ 0, 1],
+    right:          userId === '1' ? [ 0, 1] : [ 0,-1],
     'forward-left': userId === '1' ? [-1,-1] : [ 1, 1],
     'forward-right':userId === '1' ? [-1, 1] : [ 1,-1],
     'back-left':    userId === '1' ? [ 1,-1] : [-1, 1],
     'back-right':   userId === '1' ? [ 1, 1] : [-1,-1],
   };
 
-  const flipDirection = {
-    forward: 'back',
-    back: 'forward',
-    left: 'right',
-    right: 'left',
-    'forward-left': 'back-right',
-    'forward-right': 'back-left',
-    'back-left': 'forward-right',
-    'back-right': 'forward-left',
-  };
+  const maxRange = 7;
+  const rows = board.length, cols = board[0].length;
+  const map = {};
 
-  const highlights = [];
+  for (const dir in card.movement) {
+    const vec = directions[dir];
+    if (!vec) continue;
 
-  for (let row = 0; row < board.length; row++) {
-    for (let col = 0; col < board[0].length; col++) {
-      let satisfiesAll = true;
+    const range = card.movement[dir] === 'any' ? maxRange : Number(card.movement[dir] || 0);
+    for (let step = 1; step <= range; step++) {
+      const nx = x + vec[0] * step;
+      const ny = y + vec[1] * step;
+      if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) break;
 
-      for (const dir of needs) {
-        const [dx, dy] = directions[dir];
-        const tx = row + dx;
-        const ty = col + dy;
+      const occupant = board[nx]?.[ny];
+      const key = `${nx}-${ny}`;
 
-        if (tx < 0 || tx >= board.length || ty < 0 || ty >= board[0].length) {
-          satisfiesAll = false;
-          break;
+      if (occupant) {
+        // can capture enemy; mark then stop in this direction
+        if (occupant.owner !== userId) {
+          map[key] = { status: 'FREE', cost: 0 };
         }
-
-        const neighbor = board[tx]?.[ty] || null;
-        const landTile = landBoard[tx]?.[ty] || null;
-
-        let valid = false;
-
-        // ✅ Only your monsters can satisfy needs
-        if (neighbor && neighbor.type === 'monster' && neighbor.owner === userId) {
-          const baseOpposite = flipDirection[dir];
-          // Check if the neighbor could step "back" toward (row,col)
-          const movementVal = neighbor.movement?.[baseOpposite];
-          if (movementVal === 1 || movementVal === 2 || movementVal === 'any') {
-            valid = true;
-          }
-        }
-
-        // ✅ Only your lands can satisfy needs
-        if (!valid && landTile && landTile.owner === userId) {
-          if (landTile.creation_needs?.includes(flipDirection[dir])) {
-            valid = true;
-          }
-        }
-
-        if (!valid) {
-          satisfiesAll = false;
-          break;
-        }
+        break;
       }
 
-      if (satisfiesAll) {
-        highlights.push(`${row}-${col}`);
-      }
+      // empty cell — normal move
+      map[key] = { status: 'FREE', cost: 0 };
     }
   }
 
-  setHighlightedCells(highlights);
+  setHighlightMap(map);
+  setHighlightedCells(Object.keys(map));
 };
+
+// Summons always PAY (pass the monster card so we can show its cost)
+// Safe default: works even if you call without the card
+const highlightSummonZones = (monsterCard = null) => {
+  clearHighlights();
+
+  if (!board?.length || !board[0]?.length) {
+    setHighlightMap({});
+    setHighlightedCells([]);
+    return;
+  }
+
+  // Use dynamic bottom/top row based on board size
+  const summonRow = userId === '1' ? board.length - 1 : 0;
+  const cols = board[0].length;
+  const cost = Number(monsterCard?.mana ?? 0);
+
+  const map = {};
+  for (let col = 0; col < cols; col++) {
+    // only allow empty cells for summoning
+    if (board?.[summonRow]?.[col]) continue;
+    const key = `${summonRow}-${col}`;
+    map[key] = { status: 'PAYABLE', cost };
+  }
+
+  setHighlightMap(map);
+  setHighlightedCells(Object.keys(map));
+};
+
+
+  const highlightPlaceActivateZones = (handIndex, land) => {
+    clearHighlights();
+    const currentHand = !land
+      ? (userId === '1' ? hand1 : hand2)       // sorceries in hand
+      : (userId === '1' ? landDeck1 : landDeck2); // lands in land deck
+
+    const card = currentHand?.[handIndex];
+    if (!card) return;
+
+    const mode = land ? 'land' : 'sorcery';
+    const map = computeLSHighlights({ card, mode, userId, board, landBoard, mana });
+
+    // Keep your old array for overlay hit-testing, but enrich with map
+    setHighlightMap(map);
+    setHighlightedCells(Object.keys(map)); // ["x-y", ...]
+  };
 
 
   return (
@@ -260,6 +234,8 @@ const highlightPlaceActivateZones = (handIndex, land) => {
         highlightMoves,
         highlightSummonZones,
         highlightPlaceActivateZones,
+        highlightMap,
+        setHighlightMap,
         apiHost,
         apiUrl,
         showTutoringPopup,
@@ -270,8 +246,8 @@ const highlightPlaceActivateZones = (handIndex, land) => {
         setShowLandDeck,
         setSelectedLandDeckIndex,
         selectedLandDeckIndex,
-         actionsThisTurn,
-         setActionsThisTurn
+        actionsThisTurn,
+        setActionsThisTurn
       }}
     >
       {children}

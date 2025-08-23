@@ -7,7 +7,7 @@ import MonsterBoardCard from './MonsterBoardCard';
 
 const cellSize = 12.5; // in vh units
 function Board({ flipDirection, notify, wsRef }) {
-    const { setSelectedLandDeckIndex,  mana, landDeck1, landDeck2, selectedLandDeckIndex, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, setCardPreview, pendingSorcery, setPendingSorcery } = useGame()
+    const { highlightMap, setSelectedLandDeckIndex, mana, landDeck1, landDeck2, selectedLandDeckIndex, setSelectedHandIndex, confirmAction, highlightMoves, clearHighlights, selected, setSelected, turn, selectedHandIndex, hand1, hand2, board, highlightedCells, userId, landBoard, lastSummonedPos, apiUrl, setCardPreview, pendingSorcery, setPendingSorcery } = useGame()
 
     const numRows = board.length;
     const numCols = board[0]?.length || 0;
@@ -21,11 +21,11 @@ function Board({ flipDirection, notify, wsRef }) {
         // If awaiting sorcery target selection
         if (pendingSorcery) {
             console.log({
-                        type: 'resolve-sorcery',
-                        slot: pendingSorcery.slot,
-                        pos: pendingSorcery.pos,
-                        target: [x, y],
-                    })
+                type: 'resolve-sorcery',
+                slot: pendingSorcery.slot,
+                pos: pendingSorcery.pos,
+                target: [x, y],
+            })
             if (wsRef.current) {
                 wsRef.current.send(
                     JSON.stringify({
@@ -215,40 +215,31 @@ function Board({ flipDirection, notify, wsRef }) {
             {rowRange.map((x) =>
                 colRange.map((y) => {
                     const cellKey = `${x}-${y}`;
+                    const meta = highlightMap[cellKey]; // { status, cost } | undefined
+                    const isHighlighted = !!meta;
                     const cellClass = (x + y) % 2 === 0 ? 'white' : 'black';
-                    const isHighlighted = highlightedCells.includes(cellKey);
+
                     return (
-                        <div
-                            key={cellKey}
-                            className={`cell ${cellClass}`}
-                            data-x={x}
-                            data-y={y}
-                            id={`cell-${x}-${y}`}
-                            onClick={() => handleCellClick(x, y)}
-                        >
-                            
+                        <div key={cellKey} className={`cell ${cellClass}`} id={`cell-${x}-${y}`} onClick={() => handleCellClick(x, y)}>
                             <div
                                 className="cell-overlay"
                                 style={
-                                    isHighlighted
-                                        ? {
-                                            background: userId === '1' ? 'rgba(51,153,255,0.3)' : 'rgba(255,165,0,0.3)',
-                                            outline: userId === '1' ? '2px solid #3399ff' : '2px solid orange',
-                                        }
-                                        : {}
+                                    !meta
+                                        ? {}
+                                        : meta.status === 'FREE'
+                                            ? { background: 'rgba(80,200,120,0.28)', outline: '2px solid #50c878', boxShadow: '0 0 10px rgba(80,200,120,.6)' }
+                                            : meta.status === 'PAYABLE'
+                                                ? { background: userId === '1' ? 'rgba(51,153,255,0.25)' : 'rgba(255,165,0,0.25)', outline: userId === '1' ? '2px solid #3399ff' : '2px solid orange' }
+                                                : { background: 'rgba(128,128,128,0.16)', outline: '2px dashed rgba(128,128,128,0.7)', cursor: 'not-allowed' }
                                 }
-                            ></div>
-                            {(() => {
-                                const landCard = landBoard[x] ? landBoard[x][y] : null;
-                                const boardCard = board[x] ? board[x][y] : null;
-                                const cards = [landCard, boardCard];
-                                return cards.map((card) => {
-                                    if (!card || card.type === 'monster') return null;
-                                    return (
-                                        <BoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} />
-                                    );
-                                });
-                            })()}
+                                title={
+                                    !meta ? '' :
+                                        meta.status === 'FREE' ? 'Free' :
+                                            meta.status === 'PAYABLE' ? `Costs ${meta.cost}` :
+                                                `Need ${meta.cost}`
+                                }
+                            />
+                            {(() => { const landCard = landBoard[x] ? landBoard[x][y] : null; const boardCard = board[x] ? board[x][y] : null; const cards = [landCard, boardCard]; return cards.map((card) => { if (!card || card.type === 'monster') return null; return ( <BoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} /> ); }); })()}
                         </div>
                     );
                 })

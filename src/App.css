@@ -1171,3 +1171,74 @@ h5 {
 .tutoring-popup-content button:hover {
   background: #ff1a1a;
 }
+
+
+.land-card.free { box-shadow: 0 0 10px rgba(80,200,120,.85); border: 2px solid #50c878; }
+.land-card.playable { box-shadow: 0 0 8px rgba(51,153,255,.7); border: 2px solid #3399ff; }
+.land-card.insufficient { opacity: .75; border: 2px dashed rgba(128,128,128,.7); cursor: not-allowed; }
+.land-card.unplayable { opacity: .5; filter: grayscale(0.5); cursor: not-allowed; }
+
+
+/* Hand card status styles */
+.hand-card {
+  position: relative;
+  transition: box-shadow .2s ease, border-color .2s ease, opacity .2s ease, filter .2s ease;
+}
+
+/* FREE */
+.hand-card.is-free {
+  box-shadow: 0 0 10px rgba(80,200,120,.85);
+  border: 2px solid #50c878;
+}
+
+/* PAYABLE */
+.hand-card.is-payable {
+  box-shadow: 0 0 8px rgba(51,153,255,.7);
+  border: 2px solid #3399ff;
+}
+
+/* INSUFFICIENT */
+.hand-card.is-insufficient {
+  opacity: 0.7;
+  border: 2px dashed rgba(128,128,128,.7);
+  cursor: not-allowed;
+}
+
+/* UNPLAYABLE */
+.hand-card.is-unplayable {
+  opacity: 0.55;
+  filter: grayscale(.4);
+  cursor: not-allowed;
+}
+
+/* Badge styles */
+.hand-card .badge {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.hand-card .badge-free {
+  background: rgba(80,200,120,.2);
+  color: #1b5e20;
+  border: 1px solid #50c878;
+}
+
+.hand-card .badge-payable {
+  background: rgba(51,153,255,.15);
+  color: #1565c0;
+  border: 1px solid #3399ff;
+}
+
+.hand-card .badge-insufficient {
+  background: rgba(128,128,128,.15);
+  color: #555;
+  border: 1px dashed rgba(128,128,128,.8);
+}
