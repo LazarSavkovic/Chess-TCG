@@ -18,8 +18,6 @@ function BoardCard({card, x, y, flipDirection}) {
     };
 
 
-console.log(card)
-
     const {lastSummonedPos, apiUrl, userId, setCardPreview} = useGame()
   return (
     <div

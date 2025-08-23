@@ -15,6 +15,7 @@ import Detail from './Detail';
 import Sounds from './Sounds';
 import TutoringTargets from './TutoringTargets';
 import LandDeckPopup from './LandDeckPopup';
+import { moveElementOver } from '../util/animations';
 
 // Utility: Generate a simple unique ID (could be improved with a package like uuid)
 const generateTabId = () => 'tab-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -61,8 +62,8 @@ function Room() {
     tutoringTargets,
     setTutoringTargets,
     showLandDeck,
-    setShowLandDeck, 
-    actionsThisTurn, 
+    setShowLandDeck,
+    actionsThisTurn,
     setActionsThisTurn
   } = useGame()
   // -----------------------
@@ -130,6 +131,15 @@ function Room() {
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-deck-tutoring') {
+        let activatedCard = data.board[data.pos[0]][data.pos[1]]
+        let activatedId = `card-${activatedCard.id}`
+        let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
+        // wait until the animation completes before moving on
+        await moveElementOver(activatedId, targetCellID, 300, {
+          hideSource: true,
+          positionMode: 'absolute', // ← try this
+          debug: true
+        });
         setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos });
 
         notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
@@ -140,6 +150,31 @@ function Room() {
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-input') {
+        let activatedCard = data.card;
+        let activatedId = `card-${activatedCard.id}`
+        let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
+        // wait until the animation completes before moving on
+        await moveElementOver(activatedId, targetCellID, 300, {
+          hideSource: true,
+          positionMode: 'absolute',   // if 'fixed' acts weird in your layout
+          removeSource: 'remove',     // don't bring the original back
+          debug: true
+        });
+
+        // 2) Optimistically place the card on the board at data.pos
+        setBoard(prev => {
+          if (!prev) return prev;
+          const [x, y] = data.pos;
+
+          // shallow-clone rows to avoid mutating React state
+          const next = prev.map(row => row.slice());
+          // ensure row clone (defensive)
+          next[x] = next[x] ? next[x].slice() : [];
+
+          next[x][y] = activatedCard; // put the card there
+          return next;
+        });
+
         setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos });
         notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
         // Store valid target cells (as strings "x-y") to later highlight them
@@ -151,6 +186,77 @@ function Room() {
         notify('yellow', `Discard card from hand to end turn`);
         setPendingDiscard(true);
         return;
+      }
+
+
+      // Sound effects based on info messages
+      if (data.success) {
+        if (data.info?.includes("summoned")) {
+
+          setLastSummonedPos(data.to ? data.to.join("-") : null);
+          let summonedMonster = data.board[data.to[0]][data.to[1]]
+          let summonedId = `card-${summonedMonster.id}`
+          let targetCellID = `cell-${data.to[0]}-${data.to[1]}`
+          // wait until the animation completes before moving on
+          await moveElementOver(summonedId, targetCellID, 300, {
+            hideSource: true,
+            positionMode: 'absolute',   // if 'fixed' acts weird in your layout
+            removeSource: 'remove',     // don't bring the original back
+            debug: true
+          });
+          playSound("spawnSound");
+
+        } else {
+          setLastSummonedPos(null);
+        }
+        if (data.info?.includes("activated")) {
+          // console.log(data.pos, 'pos')
+          // let activatedCard = data.board[data.pos[0]][data.pos[1]]
+          // let activatedId = `card-${activatedCard.id}`
+          // let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
+          // // wait until the animation completes before moving on
+          // await moveElementOver(activatedId, targetCellID, 300, {
+          //   hideSource: true,
+          //   positionMode: 'absolute', // ← try this
+          //   debug: true
+          // });
+        }
+        if (data.info?.includes("Move successful")) playSound("moveSound");
+        if (data.info?.includes("defeated") || data.info?.includes("killed")) playSound("deathSound");
+        if (data.info?.includes("attacked directly")) {
+
+          const cardEl = document.getElementById(`card-${data.card.id}`);
+          if (!cardEl) return; // Always safe
+          const originalTop = parseFloat(cardEl.style.top.slice(0, cardEl.style.top.length - 1)) || 0;
+
+          // Amounts for shifting
+          const step = 5;
+          const jump = 15;
+
+          let first, second;
+
+          // 👉 Logic based on who is moving
+          if (data.turn == userAssignments[username]) {
+            first = originalTop + step;     // +5
+            second = originalTop - jump;    // -15
+          } else {
+            first = originalTop - step;     // -5
+            second = originalTop + jump;    // +15
+          }
+
+          setTimeout(() => {
+            cardEl.style.top = `${first}%`;
+            setTimeout(() => {
+              cardEl.style.top = `${second}%`;
+              playSound("deathSound");
+              setTimeout(() => {
+                cardEl.style.top = `${originalTop}%`;
+              }, 300);
+            }, 300);
+          }, 300);
+
+        }
+        if (data.info?.includes("activated") || data.info?.includes("cast")) playSound("spawnSound");
       }
 
 
@@ -227,51 +333,6 @@ function Room() {
       }
       if (data.moves_left !== undefined) setMovesLeft(data.moves_left);
 
-      // Sound effects based on info messages
-      if (data.success) {
-        if (data.info?.includes("summoned")) {
-          playSound("spawnSound");
-          setLastSummonedPos(data.to ? data.to.join("-") : null);
-        } else {
-          setLastSummonedPos(null);
-        }
-        if (data.info?.includes("Move successful")) playSound("moveSound");
-        if (data.info?.includes("defeated") || data.info?.includes("killed")) playSound("deathSound");
-        if (data.info?.includes("attacked directly")) {
-
-          const cardEl = document.getElementById(`card-${data.card.id}`);
-          if (!cardEl) return; // Always safe
-          const originalTop = parseFloat(cardEl.style.top.slice(0, cardEl.style.top.length - 1)) || 0;
-
-          // Amounts for shifting
-          const step = 5;
-          const jump = 15;
-
-          let first, second;
-
-          // 👉 Logic based on who is moving
-          if (data.turn == userAssignments[username]) {
-            first = originalTop + step;     // +5
-            second = originalTop - jump;    // -15
-          } else {
-            first = originalTop - step;     // -5
-            second = originalTop + jump;    // +15
-          }
-
-          setTimeout(() => {
-            cardEl.style.top = `${first}%`;
-            setTimeout(() => {
-              cardEl.style.top = `${second}%`;
-              playSound("deathSound");
-              setTimeout(() => {
-                cardEl.style.top = `${originalTop}%`;
-              }, 300);
-            }, 300);
-          }, 300);
-
-        }
-        if (data.info?.includes("activated") || data.info?.includes("cast")) playSound("spawnSound");
-      }
 
       // Handle game over
       if (data.type === 'game-over') {
@@ -379,7 +440,6 @@ function Room() {
 
   // Simple notification function (notifications auto-remove after 3 seconds)
   const notify = (color, message) => {
-    console.log('triggered with', message)
     const id = Date.now();
     setNotifications((prev) => [...prev, { id, color, message }]);
     setTimeout(() => {
@@ -434,9 +494,9 @@ function Room() {
 
         <div className="land-deck-preview" onClick={() => setShowLandDeck(true)}>
           <div className="card-content placeholder-card">
-            
+
             <div className="hand-card opponent-card" style={{ backgroundColor: "#261a33", height: "8vw" }} >
-              <h6 className="userH2" style={{color: 'gold', textAlign: 'center' }}>Land Deck</h6>
+              <h6 className="userH2" style={{ color: 'gold', textAlign: 'center' }}>Land Deck</h6>
             </div>
             <div className="rules-text" >Click to view</div>
           </div>

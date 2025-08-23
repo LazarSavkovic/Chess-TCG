@@ -217,13 +217,13 @@ function Board({ flipDirection, notify, wsRef }) {
                     const cellKey = `${x}-${y}`;
                     const cellClass = (x + y) % 2 === 0 ? 'white' : 'black';
                     const isHighlighted = highlightedCells.includes(cellKey);
-                    if (isHighlighted) console.log(cellKey);
                     return (
                         <div
                             key={cellKey}
                             className={`cell ${cellClass}`}
                             data-x={x}
                             data-y={y}
+                            id={`cell-${x}-${y}`}
                             onClick={() => handleCellClick(x, y)}
                         >
                             

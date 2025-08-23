@@ -5,8 +5,6 @@ import TurnActions from './TurnActions';
 
 function TurnDetail({handleEndTurn}) {
     const {turn, userId, movesLeft} = useGame()
-    console.log(turn, 'turn')
-    console.log(userId, 'userId')
   return (
     <>
     <div className="turnDetail">
