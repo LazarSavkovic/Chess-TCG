@@ -484,7 +484,7 @@ function Room() {
 
 
   return (
-    <>
+    <div className='relative flex h-screen w-screen overflow-hidden'>
       {isPortrait && <PleaseRotate />}
       <Notifications />
       <ConfirmationModal />
@@ -521,7 +521,7 @@ function Room() {
       <Sounds />
       <LandDeckPopup />
       <TutoringTargets setShowTutoringPopup={setShowTutoringPopup} showTutoringPopup={showTutoringPopup} tutoringTargets={tutoringTargets} wsRef={wsRef} />
-    </>
+    </div>
   );
 }
 

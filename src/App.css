@@ -8,27 +8,33 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+}
 
 body {
   margin: 0;
   padding: 0;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100%;
+  background: #0b0b13; /* or your gradient on #root if you want */
 }
 
+/* Root should be a vertical flow container that can scroll */
 #root {
   font-family: sans-serif;
   display: flex;
-  align-items: center;
+  flex-direction: column;    /* stack: Navbar, then page */
+  align-items: stretch;      /* let children be full width */
+  min-height: 100vh;         /* allow sticky header to work */
+  width: 100%;
+  overflow-x: hidden;        /* avoid accidental horizontal scroll */
+  overflow-y: auto;          /* allow page to scroll */
   background: linear-gradient(135deg, #1c1c2b, #362d4d);
   background-size: cover;
   background-blend-mode: overlay;
-  height: 100vh;
-  width: 100vw;
-  margin: 0;
-  overflow: hidden;
   position: relative;
 }
+
 
 #board {
   display: grid;
