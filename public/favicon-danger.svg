@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <filter id="fx" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ef4444" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- simplified crowned, fanged M -->
+  <path d="M176 140 L208 108 L256 144 L304 108 L336 140 L330 164 L182 164 Z"
+        fill="#f59e0b" filter="url(#fx)"/>
+
+  <path d="M128 360 V200 L256 320 L384 200 V360"
+        stroke="#fafafa" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" filter="url(#fx)"/>
+
+  <path d="M246 320 L256 348 L266 320 Z" fill="#fafafa"/>
+  <path d="M226 304 L236 332 L246 306 Z" fill="#fafafa"/>
+  <path d="M266 304 L276 332 L286 306 Z" fill="#fafafa"/>
+</svg>

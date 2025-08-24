@@ -2,6 +2,7 @@ import React from 'react'
 import { useGame } from '../context/GameContext';
 import BoardCard from './BoardCard';
 import MonsterBoardCard from './MonsterBoardCard';
+import { evaluateTileForCard } from '../util/evaluate';
 
 
 
@@ -85,40 +86,69 @@ function Board({ flipDirection, notify, wsRef }) {
                     notify('yellow', 'Invalid summon position.');
                 }
             } else if (selectedCard.type === 'sorcery') {
+
+                const meta = evaluateTileForCard(selectedCard, x, y, board, landBoard, userId);
+
+                if (meta.status === 'UNPLAYABLE') {
+                    notify('yellow', 'Activation needs not met at this tile.');
+                    return;
+                }
+                if (meta.status === 'PAYABLE' && (selectedCard.mana > mana[userId])) {
+                    notify('red', 'Not enough mana to use this card.');
+                    return;
+                }
+
+                const prompt =
+                    meta.status === 'FREE'
+                        ? `Activate ${selectedCard.name} here for free?`
+                        : `Spend ${selectedCard.mana} mana to activate ${selectedCard.name} here?`;
+
                 confirmAction(
-                    `Spend ${selectedCard.mana} mana to activate ${selectedCard.name} on this tile?`,
+                    prompt,
                     'Activate!',
                     'Cancel',
                     () => {
                         if (wsRef.current) {
-                            wsRef.current.send(
-                                JSON.stringify({
-                                    type: 'activate-sorcery',
-                                    user_id: userId,
-                                    slot: selectedHandIndex,
-                                    pos: [x, y],
-                                })
-                            );
+                            wsRef.current.send(JSON.stringify({
+                                type: 'activate-sorcery',
+                                user_id: userId,
+                                slot: selectedHandIndex,
+                                pos: [x, y],
+                            }));
                         }
                         setSelectedHandIndex(null);
                         clearHighlights();
                     }
                 );
             } else if (selectedCard.type === 'land') {
+                const meta = evaluateTileForCard(selectedCard, x, y, board, landBoard, userId);
+
+                if (meta.status === 'UNPLAYABLE') {
+                    notify('yellow', 'Cannot place land here.');
+                    return;
+                }
+                if (meta.status === 'PAYABLE' && (selectedCard.mana > mana[userId])) {
+                    notify('red', 'Not enough mana to place this land.');
+                    return;
+                }
+
+                const prompt =
+                    meta.status === 'FREE'
+                        ? `Create ${selectedCard.name} here for free?`
+                        : `Spend ${selectedCard.mana} mana to create ${selectedCard.name} here?`;
+
                 confirmAction(
-                    `Spend ${selectedCard.mana} mana to create ${selectedCard.name} on this tile?`,
+                    prompt,
                     'Create!',
                     'Cancel',
                     () => {
                         if (wsRef.current) {
-                            wsRef.current.send(
-                                JSON.stringify({
-                                    type: 'place-land',
-                                    user_id: userId,
-                                    slot: selectedLandDeckIndex,
-                                    pos: [x, y],
-                                })
-                            );
+                            wsRef.current.send(JSON.stringify({
+                                type: 'place-land',
+                                user_id: userId,
+                                slot: selectedLandDeckIndex,
+                                pos: [x, y],
+                            }));
                         }
                         setSelectedLandDeckIndex(null);
                         clearHighlights();
@@ -239,7 +269,7 @@ function Board({ flipDirection, notify, wsRef }) {
                                                 `Need ${meta.cost}`
                                 }
                             />
-                            {(() => { const landCard = landBoard[x] ? landBoard[x][y] : null; const boardCard = board[x] ? board[x][y] : null; const cards = [landCard, boardCard]; return cards.map((card) => { if (!card || card.type === 'monster') return null; return ( <BoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} /> ); }); })()}
+                            {(() => { const landCard = landBoard[x] ? landBoard[x][y] : null; const boardCard = board[x] ? board[x][y] : null; const cards = [landCard, boardCard]; return cards.map((card) => { if (!card || card.type === 'monster') return null; return (<BoardCard key={card.id} card={card} x={x} y={y} flipDirection={flipDirection} />); }); })()}
                         </div>
                     );
                 })

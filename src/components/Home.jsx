@@ -39,7 +39,7 @@ export default function Home() {
       </div>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pt-14 pb-10 md:pt-20 md:pb-16">
+      <section className="mx-auto max-w-6xl px-6 pt-32 pb-10 md:pt-48 md:pb-16">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight md:text-6xl">
             Monsters &amp; Monarchs
@@ -53,7 +53,7 @@ export default function Home() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <button
                 onClick={handleCreate}
-                className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/40"
+                className="inline-flex items-center cursor-pointer justify-center rounded-xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/40"
               >
                 Create Room
               </button>

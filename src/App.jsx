@@ -6,6 +6,8 @@ import { SignedIn, SignedOut, SignIn, RedirectToSignIn } from '@clerk/clerk-reac
 import Room from './components/Room';
 import Layout from './components/Layout';
 import Home from './components/Home';
+import DeckBuilder from './components/DeckBuilder';
+import DecksPage from './components/DecksPage';
 
 function App() {
   return (
@@ -16,6 +18,10 @@ function App() {
           {/* Home has a navbar via the layout */}
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
+<Route path="/builder" element={<DeckBuilder />} />          {/* create */}
+<Route path="/builder/:deckId" element={<DeckBuilder />} />  {/* edit */}
+
+      <Route path="/decks" element={<DecksPage />} />
           </Route>
 
           {/* Room has no navbar */}

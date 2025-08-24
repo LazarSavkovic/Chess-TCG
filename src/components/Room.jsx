@@ -131,9 +131,10 @@ function Room() {
 
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-deck-tutoring') {
-        let activatedCard = data.board[data.pos[0]][data.pos[1]]
-        let activatedId = `card-${activatedCard.id}`
-        let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
+        console.log(data.pos)
+        // let activatedCard = data.board[data.pos[0]][data.pos[1]]
+        // let activatedId = `card-${activatedCard.id}`
+        // let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
         // wait until the animation completes before moving on
         // await moveElementOver(activatedId, targetCellID, 300, {
         //   hideSource: true,
@@ -151,8 +152,8 @@ function Room() {
       // Special handling for awaiting-input (e.g. sorcery targeting)
       if (data.type === 'awaiting-input') {
         let activatedCard = data.card;
-        let activatedId = `card-${activatedCard.id}`
-        let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
+        // let activatedId = `card-${activatedCard.id}`
+        // let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
         // wait until the animation completes before moving on
         // await moveElementOver(activatedId, targetCellID, 300, {
         //   hideSource: true,
@@ -194,9 +195,9 @@ function Room() {
         if (data.info?.includes("summoned")) {
 
           setLastSummonedPos(data.to ? data.to.join("-") : null);
-          let summonedMonster = data.board[data.to[0]][data.to[1]]
-          let summonedId = `card-${summonedMonster.id}`
-          let targetCellID = `cell-${data.to[0]}-${data.to[1]}`
+          // let summonedMonster = data.board[data.to[0]][data.to[1]]
+          // let summonedId = `card-${summonedMonster.id}`
+          // let targetCellID = `cell-${data.to[0]}-${data.to[1]}`
           // wait until the animation completes before moving on
           // await moveElementOver(summonedId, targetCellID, 300, {
           //   hideSource: true,
