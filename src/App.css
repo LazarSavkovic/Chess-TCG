@@ -1248,3 +1248,53 @@ h5 {
   color: #555;
   border: 1px dashed rgba(128,128,128,.8);
 }
+
+
+/* Overlay + card shell (reusing earlier classes) */
+.lobby-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px}
+.lobby-card{width:min(720px,95vw);background:#0b1220;border:1px solid #1f2a44;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.4);overflow:hidden}
+.lobby-header{padding:16px;border-bottom:1px solid #1f2a44;display:flex;justify-content:space-between;align-items:center}
+.lobby-title{color:#e6edf3;font-weight:700}
+.lobby-subtitle{color:#9aa4b2;font-size:12px}
+.lobby-body{padding:16px;display:grid;gap:16px}
+.lobby-section{background:#0d1628;border:1px solid #1f2a44;border-radius:12px;padding:16px}
+.lobby-section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.lobby-section-title{color:#e6edf3;font-weight:600}
+.lobby-right-actions{display:flex;gap:8px;align-items:center}
+.muted{color:#94a3b8}
+
+/* Deck list grid */
+.deck-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:640px){.deck-grid{grid-template-columns:1fr 1fr}}
+.deck-card{background:#0b1426;border:1px solid #1f2a44;border-radius:10px;padding:12px;display:grid;gap:8px}
+.deck-card.selected{outline:2px solid #10b981}
+.deck-card-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.deck-card-name{color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:11px;padding:2px 6px;border-radius:999px;background:#065f46;color:#d1fae5;border:1px solid #10b981}
+.deck-card-desc{color:#94a3b8;font-size:13px;line-height:1.4}
+.deck-card-meta{color:#94a3b8;font-size:12px}
+.deck-card-actions{display:flex;gap:8px}
+
+/* Summary + status */
+.deck-summary{color:#cbd5e1;font-size:14px;line-height:1.6}
+.deck-name{font-weight:600;color:#e2e8f0}
+.deck-note{font-size:12px;color:#94a3b8;margin-top:6px}
+.deck-placeholder{color:#94a3b8;font-size:14px}
+.lobby-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.status-card{background:#0d1628;border:1px solid #1f2a44;border-radius:12px;padding:12px}
+.status-title{color:#e2e8f0;font-weight:600;margin-bottom:6px}
+.status-line{color:#cbd5e1;font-size:14px}
+
+/* Buttons */
+.btn{background:#334155;color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font:inherit}
+.btn:hover{filter:brightness(1.05)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{background:#334155;cursor:not-allowed;filter:none}
+.btn-link{background:#1f2937;text-decoration:none;display:inline-flex;align-items:center}
+.btn-secondary{background:#1f2937;text-decoration:none}
+.btn-small{padding:6px 10px;font-size:14px}
+.btn-ready{background:#10b981;padding:10px 14px;font-weight:600}
+.btn-ready:disabled{background:#334155}
+
+/* Utilities */
+.hidden{display:none}

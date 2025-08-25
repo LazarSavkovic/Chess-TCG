@@ -2,19 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { useParams, useNavigate } from "react-router-dom";
 import Card from "./Card";
+import { buildDeckExport, downloadJson, compressById, slugify } from "../util/export";
 
 const PILES = ["MAIN", "SIDE", "LAND"];
 
-// compress cards -> [{card_id, qty, position}]
-function compressById(arr) {
-  const m = new Map();
-  const order = [];
-  for (const c of arr) {
-    m.set(c.card_id, (m.get(c.card_id) || 0) + 1);
-    if (!order.includes(c.card_id)) order.push(c.card_id);
-  }
-  return order.map((card_id, i) => ({ card_id, qty: m.get(card_id), position: i }));
-}
 
 // expand [{card_id, qty}] -> repeated card specs using catalog map
 function expandRows(rows, byId) {
@@ -63,16 +54,16 @@ function CardThumb({ c, onAdd, draggable = true }) {
 function Pile({ name, cards, onAdd, onRemove, onClear }) {
   return (
     <div
-      className="rounded-2xl border border-slate-700 bg-slate-900/60"
+      className="rounded-2xl border border-slate-700 bg-slate-900/60 h-full min-h-0 flex flex-col"
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
         const raw = e.dataTransfer.getData("application/json");
         if (!raw) return;
-        try { onAdd(JSON.parse(raw)); } catch {}
+        try { onAdd(JSON.parse(raw)); } catch { }
       }}
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 shrink-0">
         <div className="text-slate-200 font-semibold">{name}</div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">{cards.length} cards</span>
@@ -87,9 +78,9 @@ function Pile({ name, cards, onAdd, onRemove, onClear }) {
         </div>
       </div>
 
-      <div className="p-3 grid grid-cols-2 gap-3 max-h-[44vh] overflow-auto">
+      <div className="p-3 grid grid-cols-7 gap-3 auto-rows-min flex-1 min-h-0 overflow-y-auto">
         {cards.map((c, i) => (
-          <div key={`${c.card_id}-${i}`} className="relative">
+          <div key={`${c.card_id}-${i}`} className="relative ">
             <CardThumb c={c} draggable={false} />
             <button
               className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-600 text-white text-xs"
@@ -127,6 +118,17 @@ export default function DeckBuilder() {
 
   const [piles, setPiles] = useState({ MAIN: [], SIDE: [], LAND: [] });
   const [loading, setLoading] = useState(true);
+
+
+  function downloadDeck() {
+    const payload = buildDeckExport({ deckName, deckDesc, piles });
+    const base = slugify(deckName) || "deck";
+    // include short timestamp for uniqueness
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `${base}-${stamp}.tdeck.json`; // custom extension if you like
+    downloadJson(payload, filename);
+  }
+
 
   // Fetch catalog first
   useEffect(() => {
@@ -320,6 +322,13 @@ export default function DeckBuilder() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={downloadDeck}
+              className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white"
+              title="Export this deck as a file you can upload later"
+            >
+              Download Deck
+            </button>
             {deckId && !isActive && (
               <button
                 onClick={makeActive}
@@ -347,24 +356,19 @@ export default function DeckBuilder() {
       </div>
 
       {/* content */}
-      <div className="max-w-7xl mx-auto px-4 pb-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 pb-10 grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* piles */}
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Pile
-            name="MAIN"
-            cards={piles.MAIN}
-            onAdd={(c) => addTo("MAIN", c)}
-            onRemove={(i) => removeFrom("MAIN", i)}
-            onClear={() => clearPile("MAIN")}
-          />
-          <Pile
-            name="SIDE"
-            cards={piles.SIDE}
-            onAdd={(c) => addTo("SIDE", c)}
-            onRemove={(i) => removeFrom("SIDE", i)}
-            onClear={() => clearPile("SIDE")}
-          />
-          <div className="md:col-span-2">
+        <div className="flex flex-col gap-6 lg:col-span-4 min-h-0">
+          <div className="w-full h-[60vh] min-h-0">
+            <Pile
+              name="MAIN"
+              cards={piles.MAIN}
+              onAdd={(c) => addTo("MAIN", c)}
+              onRemove={(i) => removeFrom("MAIN", i)}
+              onClear={() => clearPile("MAIN")}
+            />
+          </div>
+          <div className="w-full h-[30vh] min-h-0">
             <Pile
               name="LAND"
               cards={piles.LAND}
@@ -373,13 +377,24 @@ export default function DeckBuilder() {
               onClear={() => clearPile("LAND")}
             />
           </div>
+
+          <div className="w-full h-[30vh] min-h-0">
+            <Pile
+              name="SIDE"
+              cards={piles.SIDE}
+              onAdd={(c) => addTo("SIDE", c)}
+              onRemove={(i) => removeFrom("SIDE", i)}
+              onClear={() => clearPile("SIDE")}
+            />
+          </div>
+
         </div>
 
         {/* catalog */}
         <aside className="lg:col-span-1">
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 overflow-hidden">
             <div className="border-b border-slate-800 p-3">
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <input
                   placeholder="Search name / text / id…"
                   className="flex-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 outline-none"
@@ -397,7 +412,7 @@ export default function DeckBuilder() {
                   <option value="land">Lands</option>
                 </select>
                 <select
-                  className="px-2 py-2 rounded-lg bg-slate-800 border border-slate-700"
+                  className="px-2 py-2 rounded-lg bg-slate-800 border border-slate-700 "
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                 >

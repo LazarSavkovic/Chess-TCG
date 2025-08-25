@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
+import { slugify } from "../util/export";
 
 // Small helper
 function fmtDate(s) {
@@ -40,7 +41,7 @@ function DeckRow({ deck, onView, onMakeActive, onDelete }) {
         >
           View
         </button>
-         {/* NEW: Link to edit mode (/builder/:deckId) */}
+        {/* NEW: Link to edit mode (/builder/:deckId) */}
         <Link
           to={`/builder/${deck.id}`}
           className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 text-sm"
@@ -178,6 +179,96 @@ export default function DecksPage() {
   const [loading, setLoading] = useState(true);
   const [viewing, setViewing] = useState(null); // deck id for modal
 
+
+
+  const fileInputRef = React.useRef(null);
+
+  function triggerUpload() {
+    fileInputRef.current?.click();
+  }
+
+
+  async function createDeckFromExport(payload) {
+    // basic validation
+    if (!payload || typeof payload !== "object") throw new Error("Invalid file.");
+    if (!payload.piles || typeof payload.piles !== "object") throw new Error("Missing piles.");
+    const { MAIN = [], SIDE = [], LAND = [] } = payload.piles;
+
+    // 1) create deck
+    const createRes = await fetch(`/api/decks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Clerk-User-Id": userId,
+      },
+      body: JSON.stringify({
+        name: (payload.name || "Imported Deck").slice(0, 120),
+        description: payload.description || "",
+      }),
+    });
+
+    if (!createRes.ok) {
+      const err = await createRes.json().catch(() => ({}));
+      throw new Error("Failed to create deck: " + (err.error || createRes.statusText));
+    }
+    const created = await createRes.json();
+    const newId = created.id;
+
+    // 2) send piles (already compressed rows in the file)
+    const pilesToSend = [
+      ["MAIN", MAIN],
+      ["SIDE", SIDE],
+      ["LAND", LAND],
+    ];
+
+    for (const [pile, rows] of pilesToSend) {
+      const res = await fetch(`/api/decks/${newId}/cards`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Clerk-User-Id": userId,
+        },
+        body: JSON.stringify({ pile, cards: rows }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Failed to import ${pile}: ` + (err.error || res.statusText));
+      }
+    }
+
+    return newId;
+  }
+
+  async function onUploadFileSelected(e) {
+    const file = e.target.files?.[0];
+    // reset input so choosing same file again re-triggers
+    e.target.value = "";
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+
+      // Optional: check version compatibility
+      if (json.version && json.version !== 1) {
+        const ok = window.confirm(
+          `This file has version ${json.version}, expected 1. Try importing anyway?`
+        );
+        if (!ok) return;
+      }
+
+      const newId = await createDeckFromExport(json);
+      alert("Deck imported!");
+      await load(); // refresh lists
+      // Optionally jump to builder:
+      // window.location.assign(`/builder/${newId}`);
+    } catch (err) {
+      console.error(err);
+      alert(err?.message || "Failed to import deck file.");
+    }
+  }
+
+
   async function load() {
     setLoading(true);
     try {
@@ -221,14 +312,30 @@ export default function DecksPage() {
       <div className="max-w-5xl mx-auto px-4 pt-24 pb-8">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-2xl font-bold">Your Decks</h1>
-          <a
-            href="/builder"
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white"
-          >
-            Open Deck Builder
-          </a>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={triggerUpload}
+              className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white"
+              title="Upload a deck file exported from the builder"
+            >
+              Upload Deck
+            </button>
+            <a
+              href="/builder"
+              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white"
+            >
+              Open Deck Builder
+            </a>
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.tdeck.json,application/json"
+              className="hidden"
+              onChange={onUploadFileSelected}
+            />
+          </div>
         </div>
-
         <div className="mt-6 space-y-4">
           {loading ? (
             <div className="text-slate-400">Loading…</div>

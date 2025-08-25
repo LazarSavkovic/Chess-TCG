@@ -1,5 +1,5 @@
 // Room.jsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import '../App.css';
 import { useGame } from '../context/GameContext';
 import Hand from './Hand';
@@ -16,9 +16,18 @@ import Sounds from './Sounds';
 import TutoringTargets from './TutoringTargets';
 import LandDeckPopup from './LandDeckPopup';
 import { moveElementOver } from '../util/animations';
+import { useAuth } from '@clerk/clerk-react';
 
 // Utility: Generate a simple unique ID (could be improved with a package like uuid)
 const generateTabId = () => 'tab-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+const pileCount = (rows = []) => rows.reduce((n, r) => n + (r.qty ?? 1), 0);
+const fmtDate = (s) => { try { return new Date(s).toLocaleString(); } catch { return s || ""; } };
+
+// Nicely show a name (fallback if file has no name)
+const prettyName = (payload) =>
+  payload?.name || `Imported Deck (${pileCount(payload?.piles?.MAIN)} main / ${pileCount(payload?.piles?.LAND)} land)`;
+
 
 
 function Room() {
@@ -72,6 +81,67 @@ function Room() {
   const wsRef = useRef(null);
   const previousPositions = useRef({});
 
+const { userId: clerkUserId } = useAuth();
+
+const [lobby, setLobby] = useState(null);           // { phase, choices, ready, usernames }
+const [myDecks, setMyDecks] = useState([]);
+const [loadingDecks, setLoadingDecks] = useState(false);
+const [selectedDeckId, setSelectedDeckId] = useState(null);
+const [selectedDeck, setSelectedDeck] = useState(null); // export-shaped payload (name, piles)
+
+const mySlot = userId;
+const oppSlot = mySlot === '1' ? '2' : '1';
+
+const sendChooseDeck = (payload) => {
+  if (!wsRef.current) return;
+  wsRef.current.send(JSON.stringify({ type: 'choose_deck', deck: payload }));
+};
+const sendReady = () => {
+  if (!wsRef.current) return;
+  wsRef.current.send(JSON.stringify({ type: 'ready' }));
+};
+
+async function loadDecks() {
+  if (!clerkUserId) return;
+  setLoadingDecks(true);
+  try {
+    const res = await fetch(`/api/decks`, { headers: { "X-Clerk-User-Id": clerkUserId } });
+    const data = await res.json();
+    setMyDecks(Array.isArray(data) ? data : []);
+  } finally {
+    setLoadingDecks(false);
+  }
+}
+
+async function chooseDeckById(id) {
+  if (!clerkUserId) return;
+  try {
+    const res = await fetch(`/api/decks/${id}`, { headers: { "X-Clerk-User-Id": clerkUserId } });
+    if (!res.ok) { throw new Error('Failed to fetch deck'); }
+    const deck = await res.json();
+    const payload = {
+      version: 1,
+      name: deck.name,
+      description: deck.description || "",
+      piles: deck.piles || {}
+    };
+    setSelectedDeckId(id);
+    setSelectedDeck(payload);
+    sendChooseDeck(payload);
+    notify('green', `Deck selected: ${deck.name}`);
+  } catch (e) {
+    console.error(e);
+    notify('red', 'Could not load deck.');
+  }
+}
+
+useEffect(() => {
+  if (clerkUserId) loadDecks();
+}, [clerkUserId]);
+
+
+
+
   // On Room load, check for an existing username; if none, generate one.
 
 
@@ -119,10 +189,23 @@ function Room() {
       const data = JSON.parse(event.data);
       console.log('[WebSocket] Incoming:', data);
 
+      // LOBBY snapshots/errors
+      if (data.type === 'lobby') {
+        setLobby({ phase: data.phase, choices: data.choices, ready: data.ready, usernames: data.usernames });
+        return; // lobby messages don't include board; stop here
+      }
+      if (data.type === 'lobby_error') {
+        notify('red', data.message || 'Deck invalid.');
+        return;
+      }
+
       const userAssignments = JSON.parse(localStorage.getItem("userAssignments"));
       const username = localStorage.getItem("username");
 
       if (data.type === 'init') {
+        // If match started, hide lobby
+setLobby((prev) => prev ? { ...prev, phase: 'playing' } : prev);
+
         localStorage.setItem('userAssignments', JSON.stringify(data.user_assignments))
         localStorage.setItem('mana', JSON.stringify(data.mana))
         setUserId(data.user_assignments[username]);
@@ -522,6 +605,116 @@ function Room() {
       <Sounds />
       <LandDeckPopup />
       <TutoringTargets setShowTutoringPopup={setShowTutoringPopup} showTutoringPopup={showTutoringPopup} tutoringTargets={tutoringTargets} wsRef={wsRef} />
+      {lobby?.phase === 'lobby' && (
+  <div className="lobby-overlay">
+    <div className="lobby-card">
+      <div className="lobby-header">
+        <div className="lobby-title">Choose Your Deck</div>
+        <div className="lobby-subtitle">
+          {mySlot ? `You are Player ${mySlot}` : 'Connecting…'}
+        </div>
+      </div>
+
+      <div className="lobby-body">
+        {/* Your decks list */}
+        <div className="lobby-section">
+          <div className="lobby-section-header">
+            <div className="lobby-section-title">Your Decks</div>
+            <div className="lobby-right-actions">
+              <button onClick={loadDecks} className="btn">Refresh</button>
+              <a href="/builder" className="btn btn-link">Open Deck Builder</a>
+            </div>
+          </div>
+
+          {loadingDecks ? (
+            <div className="muted">Loading…</div>
+          ) : myDecks.length === 0 ? (
+            <div className="deck-placeholder">
+              No decks yet. Create one in the <a href="/builder">Deck Builder</a>.
+            </div>
+          ) : (
+            <div className="deck-grid">
+              {myDecks.map((d) => (
+                <div key={d.id} className={`deck-card ${selectedDeckId === d.id ? 'selected' : ''}`}>
+                  <div className="deck-card-head">
+                    <div className="deck-card-name">{d.name}</div>
+                    {d.is_active && <span className="badge">Active</span>}
+                  </div>
+                  {d.description && <div className="deck-card-desc">{d.description}</div>}
+                  <div className="deck-card-meta">Created: {fmtDate(d.created_at)}</div>
+                  <div className="deck-card-actions">
+                    <button
+                      onClick={() => chooseDeckById(d.id)}
+                      className="btn btn-small"
+                      disabled={selectedDeckId === d.id}
+                      title={selectedDeckId === d.id ? 'Selected' : 'Use this deck'}
+                    >
+                      {selectedDeckId === d.id ? 'Selected ✓' : 'Use Deck'}
+                    </button>
+                    <a href={`/builder/${d.id}`} className="btn btn-small btn-secondary">View</a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Summary of selected deck (after fetching) */}
+        <div className="lobby-section">
+          <div className="lobby-section-title">Selected Deck</div>
+          {selectedDeck ? (
+            <div className="deck-summary">
+              <div className="deck-name">{selectedDeck.name}</div>
+              <div>MAIN: {pileCount(selectedDeck?.piles?.MAIN)} cards</div>
+              <div>LAND: {pileCount(selectedDeck?.piles?.LAND)} cards</div>
+              <div className="deck-note">
+                Picking a different deck will unready you server-side.
+              </div>
+            </div>
+          ) : (
+            <div className="deck-placeholder">Pick a deck above to proceed.</div>
+          )}
+        </div>
+
+        {/* Status row */}
+        <div className="lobby-status-grid">
+          <div className="status-card">
+            <div className="status-title">You</div>
+            <div className="status-line">Deck chosen: {lobby?.choices?.[mySlot] ? '✅' : '❌'}</div>
+            <div className="status-line">Ready: {lobby?.ready?.[mySlot] ? '✅' : '❌'}</div>
+          </div>
+          <div className="status-card">
+            <div className="status-title">Opponent</div>
+            <div className="status-line">Deck chosen: {lobby?.choices?.[oppSlot] ? '✅' : '❌'}</div>
+            <div className="status-line">Ready: {lobby?.ready?.[oppSlot] ? '✅' : '❌'}</div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="lobby-actions">
+          <button
+            onClick={sendReady}
+            disabled={!lobby?.choices?.[mySlot] || lobby?.ready?.[mySlot]}
+            className="btn btn-ready"
+            title={
+              !lobby?.choices?.[mySlot]
+                ? 'Pick a deck first'
+                : (lobby?.ready?.[mySlot] ? 'Already ready' : 'Ready up')
+            }
+          >
+            {lobby?.ready?.[mySlot] ? 'Ready ✓' : 'Ready'}
+          </button>
+        </div>
+
+        <div className="lobby-footnote">
+          When both players have chosen a deck and pressed <b>Ready</b>, the match will start automatically.
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }
