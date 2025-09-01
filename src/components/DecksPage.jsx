@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import { slugify } from "../util/export";
+import { useGame } from "../context/GameContext";
 
 // Small helper
 function fmtDate(s) {
@@ -20,8 +21,10 @@ function EmptyState() {
 function DeckRow({ deck, onView, onMakeActive, onDelete }) {
   return (
     <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-700 bg-slate-900/60">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
+      <div className="min-w-0 flex gap-6">
+        <div style={{height: "15vh"}} className="hand-card opponent-card user-2"></div>
+          <div className="flex flex-col justify-center">
+            <div className="flex items-center gap-2">
           <div className="font-semibold text-slate-100 truncate">{deck.name}</div>
           {deck.is_active && (
             <span className="text-xs px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-300 border border-emerald-600/40">
@@ -34,6 +37,8 @@ function DeckRow({ deck, onView, onMakeActive, onDelete }) {
         )}
         <div className="text-xs text-slate-500 mt-1">Created: {fmtDate(deck.created_at)}</div>
       </div>
+          </div>
+
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={() => onView(deck)}
@@ -72,6 +77,7 @@ function DeckDetailsModal({ open, onClose, deckId }) {
   const [loading, setLoading] = useState(false);
   const [deck, setDeck] = useState(null);
   const [catalog, setCatalog] = useState([]);
+  const { apiHost } = useGame()
 
   useEffect(() => {
     if (!open || !deckId) return;
@@ -123,7 +129,7 @@ function DeckDetailsModal({ open, onClose, deckId }) {
           <div className="p-6 text-slate-400">Loading…</div>
         ) : (
           <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-5">
-            {["MAIN", "SIDE", "LAND"].map((pile) => {
+            {["MAIN", "LAND", "SIDE"].map((pile) => {
               const cards = deck?.piles?.[pile] || [];
               return (
                 <div key={pile} className="rounded-xl border border-slate-800 bg-slate-900/60">
@@ -141,7 +147,7 @@ function DeckDetailsModal({ open, onClose, deckId }) {
                           <div key={`${row.card_id}-${i}`} className="p-3 flex items-center gap-3">
                             {c?.image ? (
                               <img
-                                src={c.image}
+                                src={`http://${apiHost}${c.image}` }
                                 alt={c?.name || row.card_id}
                                 className="w-10 h-14 object-cover rounded border border-slate-700"
                               />

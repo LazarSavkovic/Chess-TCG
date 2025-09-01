@@ -21,12 +21,7 @@ function Board({ flipDirection, notify, wsRef }) {
 
         // If awaiting sorcery target selection
         if (pendingSorcery) {
-            console.log({
-                type: 'resolve-sorcery',
-                slot: pendingSorcery.slot,
-                pos: pendingSorcery.pos,
-                target: [x, y],
-            })
+
             if (wsRef.current) {
                 wsRef.current.send(
                     JSON.stringify({

@@ -23,7 +23,7 @@ function NavBar() {
                 </Link>
 
                 {/* Desktop nav + auth */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="hidden md:!flex items-center gap-8">
                     <ul className="flex items-center gap-6 font-medium">
                         <li>
                             <Link

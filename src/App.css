@@ -118,7 +118,7 @@ body {
 }
 
 .right-sidebar h2 {
-  font-size: 1.35vw;
+  font-size: 1.15vw;
   margin: 0;
   color: #ffd700;
   text-shadow: 1px 1px 2px black;
@@ -1298,3 +1298,103 @@ h5 {
 
 /* Utilities */
 .hidden{display:none}
+
+/* Persistent overlay, lives inside the card */
+.card-frame .mm-activation,
+.monster   .mm-activation {
+  position: absolute;
+  inset: 6%;
+  z-index: 12;
+  pointer-events: none;
+  --fx: 99,102,241;
+  border-radius: 10px;
+}
+
+/* Optional idle aura while not animating (very subtle) */
+.mm-activation::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 55%,
+    rgba(var(--fx), .10) 0%,
+    rgba(var(--fx), .05) 40%,
+    transparent 70%);
+  mix-blend-mode: screen;
+  opacity: .65;
+}
+
+/* Role tints */
+.mm-activation[data-role="blue"]  { --fx: 59,130,246; }
+.mm-activation[data-role="red"]   { --fx: 239,68,68;  }
+.mm-activation[data-role="white"] { --fx: 255,255,255;}
+.mm-activation[data-role="black"] { --fx: 75,85,99;   }
+
+/* Children */
+.mm-activation > * { position: absolute; inset: 0; border-radius: inherit; }
+
+.mm-energy-bloom {
+  background: radial-gradient(circle at 50% 55%,
+    rgba(var(--fx), .42) 0%,
+    rgba(var(--fx), .18) 35%,
+    rgba(var(--fx), .08) 58%,
+    transparent 75%);
+  mix-blend-mode: screen;
+  opacity: 0;            /* idle hidden */
+  transform: scale(.9);  /* idle */
+}
+
+.mm-pulse {
+  border: 2px solid rgba(var(--fx), .95);
+  box-shadow: 0 0 16px rgba(var(--fx), .45);
+  opacity: 0;            /* idle hidden */
+  transform: scale(.2);  /* idle */
+}
+.mm-pulse-2 { opacity: 0; }
+
+/* Sparks */
+.mm-sparks { inset: 12% 10%; }
+.mm-spark {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(var(--fx), .98);
+  box-shadow: 0 0 10px rgba(var(--fx), .9);
+  transform: translate(-50%, -50%) scale(.7);
+  opacity: 0;            /* idle hidden */
+}
+
+/* --- Re-triggerable animation --- */
+/* When .mm-activation--play is added, play one burst */
+.mm-activation.mm-activation--play .mm-energy-bloom {
+  animation: mm-bloom 900ms ease-out forwards;
+}
+.mm-activation.mm-activation--play .mm-pulse-1 {
+  animation: mm-pulse 900ms cubic-bezier(.2,.6,.2,1) forwards;
+}
+.mm-activation.mm-activation--play .mm-pulse-2 {
+  animation: mm-pulse 900ms cubic-bezier(.2,.6,.2,1) 120ms forwards;
+}
+.mm-activation.mm-activation--play .mm-spark {
+  animation: mm-spark 900ms ease-out forwards;
+}
+
+/* Keyframes */
+@keyframes mm-bloom {
+  0%   { transform: scale(.9); opacity: .0; }
+  10%  { opacity: .9; }
+  60%  { opacity: .5; }
+  100% { transform: scale(1.12); opacity: 0; }
+}
+@keyframes mm-pulse {
+  0%   { transform: scale(.2); opacity: .0; }
+  10%  { opacity: 1; }
+  70%  { opacity: .45; }
+  100% { transform: scale(1.28); opacity: 0; }
+}
+@keyframes mm-spark {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
+}
