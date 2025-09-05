@@ -16,9 +16,7 @@ import Sounds from './Sounds';
 import TutoringTargets from './TutoringTargets';
 import LandDeckPopup from './LandDeckPopup';
 import { moveElementOver } from '../util/animations';
-import { playActivationFx } from '../util/activationFlash';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { resetSorceries } from '../util/resetBoard';
 
 
 
@@ -344,8 +342,7 @@ function Room() {
           // 2) Optimistically place the card on the board at data.pos
           // If the server included the card and it has an instance id, pass it.
           
-          playActivationFx(data.pos, data.card, apiHost);
-          console.log('FLASH yo')
+
 
           playSound("spawnSound");
         }
@@ -389,7 +386,6 @@ function Room() {
 
 
       if (data.board) {
-        resetSorceries()
         if (data.to && data.from && data.success) {
           const { from, to } = data;
           const [fromX, fromY] = from;
