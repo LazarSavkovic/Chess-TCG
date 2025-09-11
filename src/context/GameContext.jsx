@@ -10,6 +10,11 @@ const GameProvider = ({ children }) => {
   const apiHost = import.meta.env.VITE_API_HOST;
   const apiUrl = `http://${apiHost}`
 
+  // --- Interaction / Stack (new engine) ---
+  const [interaction, setInteraction] = useState(null); // {type, owner, card_id, slot_index, free, pos, cursor, awaiting:{kind,...}}
+  const [stack, setStack] = useState([]);               // purely visual if you want to render
+  const isLocked = !!interaction;                       // lock UI when resolving
+
   const [userId, setUserId] = useState(null);
   const [board, setBoard] = useState([]);
   const [landBoard, setLandBoard] = useState([]);
@@ -36,7 +41,6 @@ const GameProvider = ({ children }) => {
   const [selectedLandDeckIndex, setSelectedLandDeckIndex] = useState(null);
   const [lastSummonedPos, setLastSummonedPos] = useState(null);
   const [selected, setSelected] = useState(null); // Selected board cell [x, y]
-  const [pendingSorcery, setPendingSorcery] = useState(null);
   const [pendingDiscard, setPendingDiscard] = useState(false);
   const [movesLeft, setMovesLeft] = useState(3);
   const [deckSizes, setDeckSizes] = useState(null);
@@ -74,6 +78,48 @@ const GameProvider = ({ children }) => {
     setSelectedHandIndex(null);
     clearHighlights();
   };
+
+
+    // --- Helpers for new interaction prompts ---
+  const highlightCellsForAwaiting = ({ kind, owner, zone, filter }) => {
+    // We reuse your highlight overlay for both board and lands.
+    clearHighlights();
+    const targets = [];
+    if (kind === 'select_board_target' && board?.length) {
+      for (let x = 0; x < board.length; x++) {
+        for (let y = 0; y < board[0].length; y++) {
+          const c = board[x][y];
+          // Minimal filtering here — BE re-validates anyway.
+          if (filter?.require_monster && !(c && c.type === 'monster')) continue;
+          if (filter?.require_enemy && !(c && c.owner !== userId)) continue;
+          targets.push(`${x}-${y}`);
+        }
+      }
+    } else if (kind === 'select_land_target' && landBoard?.length) {
+      for (let x = 0; x < landBoard.length; x++) {
+        for (let y = 0; y < landBoard[0].length; y++) {
+          const land = landBoard[x][y];
+          if (!land) continue; // must pick an existing land
+          if (owner === 'opponent' && !(land.owner && land.owner !== userId)) continue;
+          if (owner === 'self' && !(land.owner && land.owner === userId)) continue;
+          targets.push(`${x}-${y}`);
+        }
+      }
+    }
+    setHighlightedCells(targets);
+    const map = {};
+    targets.forEach(k => (map[k] = { status: 'FREE', cost: 0 }));
+    setHighlightMap(map);
+  };
+
+  // Wrapper the Board/Hand can call to answer a prompt.
+  // The caller passes the correct payload for the currently awaited step.
+let _nonce = 0;
+function sendSorceryStep(wsRef, payload) {
+  const nonce = ++_nonce;                 // monotonically increasing
+  console.log('[FE] STEP send', nonce, payload);
+  wsRef.current?.send(JSON.stringify({ type: 'sorcery-step', payload, _nonce: nonce }));
+}
 
 
 // Moves are always FREE
@@ -181,6 +227,11 @@ const highlightSummonZones = (monsterCard = null) => {
   return (
     <GameContext.Provider
       value={{
+        interaction,
+        setInteraction,
+        stack,
+        setStack,
+       isLocked,
         userId,
         setUserId,
         turn,
@@ -209,8 +260,6 @@ const highlightSummonZones = (monsterCard = null) => {
         setMovesLeft,
         gameOver,
         setGameOver,
-        pendingSorcery,
-        setPendingSorcery,
         pendingDiscard,
         setPendingDiscard,
         notifications,
@@ -247,7 +296,8 @@ const highlightSummonZones = (monsterCard = null) => {
         setSelectedLandDeckIndex,
         selectedLandDeckIndex,
         actionsThisTurn,
-        setActionsThisTurn
+        setActionsThisTurn,
+        sendSorceryStep
       }}
     >
       {children}

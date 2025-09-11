@@ -27,11 +27,23 @@ const fmtDate = (s) => { try { return new Date(s).toLocaleString(); } catch { re
 const prettyName = (payload) =>
   payload?.name || `Imported Deck (${pileCount(payload?.piles?.MAIN)} main / ${pileCount(payload?.piles?.LAND)} land)`;
 
+// quick input helper for now (replace with a nice popup later)
+function promptForId(message) {
+  // eslint-disable-next-line no-alert
+  const val = window.prompt(message || 'Enter card_id');
+  if (!val) return null;
+  return val.trim();
+}
+
 
 
 function Room() {
 
   const {
+    interaction,
+    setInteraction,
+    setStack,
+    isLocked,
     isPortrait,
     setNotifications,
     userId,
@@ -55,8 +67,6 @@ function Room() {
     setSelectedHandIndex,
     setLastSummonedPos,
     setSelected,
-    pendingSorcery,
-    setPendingSorcery,
     setPendingDiscard,
     gameOver,
     setGameOver,
@@ -78,6 +88,20 @@ function Room() {
   // Refs
   // -----------------------
   const wsRef = useRef(null);
+
+  const lastAwaitingKeyRef = useRef(null);
+
+  function awaitingKeyFromInteraction(interaction) {
+    if (!interaction?.awaiting) return null;
+    // Prefer backend-provided ids if available:
+    // const { step_id, owner } = interaction.awaiting;
+    // return step_id ? `step:${step_id}` : `${owner}:${JSON.stringify(interaction.awaiting)}`;
+
+    const { owner, awaiting } = interaction;
+    // Build a conservative key; include type/kind and constraints:
+    return `${owner}:${awaiting.kind}:${JSON.stringify(awaiting?.filters || awaiting?.constraints || awaiting)}`;
+  }
+
   const previousPositions = useRef({});
 
 
@@ -262,45 +286,70 @@ function Room() {
 
       }
 
-
-      // Special handling for awaiting-input (e.g. sorcery targeting)
-      if (data.type === 'awaiting-deck-tutoring') {
-        console.log(data.pos)
-        // let activatedCard = data.board[data.pos[0]][data.pos[1]]
-        // let activatedId = `card-${activatedCard.id}`
-        // let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
-        // wait until the animation completes before moving on
-        // await moveElementOver(activatedId, targetCellID, 300, {
-        //   hideSource: true,
-        //   positionMode: 'absolute', // ← try this
-        //   debug: true
-        // });
-        setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos });
-
-        notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
-        // Store valid target cells (as strings "x-y") to later highlight them
-        showValidTutoringTargets(data.valid_tutoring_targets)
-        
+      // --- New engine state comes with most snapshots ---
+      if ('interaction' in data) {
+        setInteraction(data.interaction);
+        // optional: show a toast when a new step appears
+        const awaiting = data.interaction?.awaiting;
+        if (awaiting && data.interaction?.owner === userId) {
+          const label =
+            awaiting.kind === 'discard_from_hand' ? 'Discard a card' :
+              awaiting.kind === 'select_board_target' ? 'Select a target on the board' :
+                awaiting.kind === 'select_land_target' ? 'Select a land' :
+                  awaiting.kind === 'select_deck_card' ? 'Pick a card from your deck' :
+                    'Choose…';
+          notify('yellow', label);
+        }
       }
 
-      // Special handling for awaiting-input (e.g. sorcery targeting)
-      if (data.type === 'awaiting-input') {
-        let activatedCard = data.card;
-        // let activatedId = `card-${activatedCard.id}`
-        // let targetCellID = `cell-${data.pos[0]}-${data.pos[1]}`
-        // wait until the animation completes before moving on
-        // await moveElementOver(activatedId, targetCellID, 300, {
-        //   hideSource: true,
-        //   positionMode: 'absolute',   // if 'fixed' acts weird in your layout
-        //   removeSource: 'remove',     // don't bring the original back
-        //   debug: true
-        // });
-        setPendingSorcery({ slot: data.slot, card_id: data.card_id, pos: data.pos });
-        notify('yellow', `Select a target for ${data.card_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`);
-        // Store valid target cells (as strings "x-y") to later highlight them
-        setHighlightedCells(data.valid_targets.map(([x, y]) => `${x}-${y}`));
-        
+      if ('stack' in data) setStack(data.stack || []);
+
+      // === New engine messages ===
+      if (data.type === 'awaiting-step') {
+        const nextInteraction = data.interaction || interaction; // prefer fresh from data
+        const key = awaitingKeyFromInteraction(nextInteraction);
+
+        // If we've already handled this exact step, ignore this repeat snapshot
+        if (key && key === lastAwaitingKeyRef.current) {
+          // Optional: keep highlights fresh but DO NOT send again
+          // highlightCellsForAwaiting(nextInteraction.awaiting);
+          return;
+        }
+        lastAwaitingKeyRef.current = key;
+
+        const a = nextInteraction?.awaiting;
+        if (!a) return;
+
+        // ✅ From here on, handle the step ONCE
+        if (a.kind === 'select_board_target' || a.kind === 'select_land_target') {
+          highlightCellsForAwaiting(a);
+          notify('yellow', 'Choose a target cell');
+        } else if (a.kind === 'discard_from_hand') {
+          notify('yellow', 'Discard a card from your hand');
+        } else if (a.kind === 'select_deck_card') {
+          const id = promptForId('Type the card_id to tutor from your deck:');
+          if (id) sendSorceryStep(wsRef, { card_id: id });
+        } else if (a.kind === 'select_graveyard_card') {
+          const id = promptForId('Type the card_id from your graveyard:');
+          if (id) sendSorceryStep(wsRef, { card_id: id });
+        }
       }
+
+      if (data.type === 'opponent-waiting') {
+        notify('muted', 'Opponent is resolving a sorcery…');
+        // nothing else to do; UI stays locked by interaction presence
+      }
+
+      if (data.type === 'resolution-complete') {
+        notify('green', data.info || 'Sorcery resolved');
+        // Highlights/interaction will be cleared by the snapshot fields above
+      }
+
+      if (data.type === 'resolution-complete' || (data.interaction && !data.interaction.awaiting)) {
+        lastAwaitingKeyRef.current = null;
+      }
+
+
 
       if (data.type === 'discard-to-end-turn') {
         notify('yellow', `Discard card from hand to end turn`);
@@ -341,7 +390,7 @@ function Room() {
           // });
           // 2) Optimistically place the card on the board at data.pos
           // If the server included the card and it has an instance id, pass it.
-          
+
 
 
           playSound("spawnSound");
@@ -582,6 +631,7 @@ function Room() {
   // Event Handlers (End Turn, Cell Clicks, etc.)
   // -----------------------
   const handleEndTurn = () => {
+    if (isLocked) return; // locked by interaction
     if (wsRef.current) {
       wsRef.current.send(JSON.stringify({ type: 'end-turn', user_id: userId }));
     }
@@ -645,7 +695,7 @@ function Room() {
       <Hand wsRef={wsRef} />
       <Sounds />
       <LandDeckPopup />
-      <TutoringTargets setShowTutoringPopup={setShowTutoringPopup} showTutoringPopup={showTutoringPopup} tutoringTargets={tutoringTargets} wsRef={wsRef} />
+      <TutoringTargets wsRef={wsRef} />
       {lobby?.phase === 'lobby' && (
         <div className="lobby-overlay">
           <div className="lobby-card">

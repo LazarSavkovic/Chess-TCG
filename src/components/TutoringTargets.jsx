@@ -1,46 +1,52 @@
-import Card from "./Card"
+// TutoringTargets.jsx
+import React from "react";
+import Card from "./Card";
 import { useGame } from "../context/GameContext";
 
-function TutoringTargets({ showTutoringPopup, setShowTutoringPopup, tutoringTargets, wsRef }) {
-    const {pendingSorcery} = useGame()
+function TutoringTargets({ wsRef }) {
+  const { interaction, userId, sendSorceryStep } = useGame();
 
-    function handleTutoringSelect(cardId) {
-        if (wsRef.current) {
-            wsRef.current.send(
-                JSON.stringify({
-                    type: 'resolve-sorcery',
-                    slot: pendingSorcery.slot,
-                    pos: pendingSorcery.pos,
-                    card_id: cardId,
-                })
-            );
-        }
-        setShowTutoringPopup(false)
-    }
+  const awaiting = interaction?.awaiting;
+  const amActor = interaction?.owner === userId;
 
+  // Show only when the engine is asking *me* to pick a deck card
+  const isOpen = Boolean(
+    amActor && awaiting && awaiting.kind === "select_deck_card"
+  );
 
-    return (
-        <>
-            {showTutoringPopup && (
-                <div className="tutoring-popup-overlay">
-                    <div className="tutoring-popup-content">
-                        <h2>Select a Target</h2>
-                        <div className="tutoring-card-list">
-                            {tutoringTargets.map((card) => (
-                                <div key={card.id} style={{height: "22vw" }} onClick={() => handleTutoringSelect(card.id)}>
-                                    <Card  card={card}  />
-                                </div>
-                                
-                            ))}
-                        </div>
-                        <button onClick={() => setShowTutoringPopup(false)}>Cancel</button>
-                    </div>
-                </div>
-            )}
-        </>
+  const cards = isOpen ? awaiting.suggestions || [] : [];
 
+  const handlePick = (cardId) => {
+    // Reply to the step; server validates everything
+    sendSorceryStep(wsRef, { card_id: cardId });
+  };
 
-    )
+  if (!isOpen) return null;
+
+  return (
+    <div className="tutoring-popup-overlay">
+      <div className="tutoring-popup-content">
+        <h2>Select a card from your deck</h2>
+
+        {cards.length === 0 ? (
+          <div className="muted">No valid cards to choose.</div>
+        ) : (
+          <div className="tutoring-card-list">
+            {cards.map((card) => (
+              <div
+                key={card.id}
+                style={{ height: "22vw", cursor: "pointer" }}
+                onClick={() => handlePick(card.id)}
+                title={`Pick ${card.name}`}
+              >
+                <Card card={card} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-export default TutoringTargets
+export default TutoringTargets;
