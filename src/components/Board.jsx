@@ -67,7 +67,7 @@ function Board({ flipDirection, notify, wsRef }) {
             const key = `${x}-${y}`;
             // If suggestions exist, only allow those; otherwise allow any (BE will validate anyway).
             if (useSuggestions && !suggestionSet.has(key)) return;
-
+            console.log('[BOARD CLICK] send pos', [x, y]);   // ← sanity
             sendSorceryStep(wsRef, { pos: [x, y] });
             clearHighlights(); // prevent user double-click; next snapshot will repaint
             return;
@@ -285,14 +285,27 @@ function Board({ flipDirection, notify, wsRef }) {
                 colRange.map((y) => {
                     const cellKey = `${x}-${y}`;
 
+                    // 🔧 define this:
+                    const key = `${x}-${y}`;
+                    const isValidTarget = !useSuggestions || suggestionSet.has(key);
+
+
                     // 1) If we're choosing a board/land target, the overlay is driven by suggestions
                     let overlayStyle = {};
                     if (isChoosingBoard) {
-                        const key = `${x}-${y}`;
-                        if (suggestionSet.size && !suggestionSet.has(key)) return; // only allow suggested cells, if any
-                        sendSorceryStep(wsRef, { pos: [x, y] });
-                        clearHighlights();
-                        return;
+                        overlayStyle = isValidTarget
+                            ? {
+                                background: 'rgba(255, 215, 0, 0.25)',
+                                outline: '2px solid gold',
+                                boxShadow: '0 0 10px rgba(255,215,0,.6)',
+                                cursor: 'pointer',
+                            }
+                            : {
+                                opacity: 0.35,
+                                filter: 'grayscale(0.4)',
+                                pointerEvents: 'none',   // keep cell, block clicks
+                                cursor: 'not-allowed',
+                            };
                     }
                     else {
                         // 2) Otherwise, use your normal highlightMap paint (move/summon/activate previews)

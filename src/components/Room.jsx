@@ -18,6 +18,21 @@ import LandDeckPopup from './LandDeckPopup';
 import { moveElementOver } from '../util/animations';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
+const getMyIdFromStorage = () => {
+  try {
+    const username = localStorage.getItem('username');
+    const mapRaw = localStorage.getItem('userAssignments');
+    if (!username || !mapRaw) return null;
+    const map = JSON.parse(mapRaw);
+    const id = map?.[username];
+    console.log(id, 'id')
+    return id === '1' || id === '2' ? id : null;
+  } catch {
+    return null;
+  }
+};
+
+
 
 
 const pileCount = (rows = []) => rows.reduce((n, r) => n + (r.qty ?? 1), 0);
@@ -241,6 +256,8 @@ function Room() {
     };
 
     ws.onmessage = async (event) => {
+      let myIdNow = getMyIdFromStorage() || myIdRef.current || userId;
+
       const data = JSON.parse(event.data);
       console.log('[WebSocket] Incoming:', data);
 
@@ -270,6 +287,7 @@ function Room() {
         }
       }
       const username = playerName;
+      let socketUserId = null;
 
       if (data.type === 'init') {
         if (data.message === 'Match started' || data.phase === 'playing') {
@@ -287,16 +305,18 @@ function Room() {
       }
 
       // --- New engine state comes with most snapshots ---
-      if ('interaction' in data) {
+      if ('interaction' in data && data.interaction) {
+      const ixn = data.interaction; console.log('[IXN]', { awaiting: ixn?.awaiting?.kind, owner: ixn?.owner, myId: String(myIdNow), });
         setInteraction(data.interaction);
         // optional: show a toast when a new step appears
         const awaiting = data.interaction?.awaiting;
-        if (awaiting && data.interaction?.owner === userId) {
+        if (awaiting && data.interaction?.owner === String(myIdNow)) {
           const label =
             awaiting.kind === 'discard_from_hand' ? 'Discard a card' :
               awaiting.kind === 'select_board_target' ? 'Select a target on the board' :
                 awaiting.kind === 'select_land_target' ? 'Select a land' :
                   awaiting.kind === 'select_deck_card' ? 'Pick a card from your deck' :
+                  awaiting.kind === 'select_graveyard_card' ? 'Pick a card from your graveyard' :
                     'Choose…';
           notify('yellow', label);
         }
