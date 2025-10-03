@@ -1,12 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useGame } from '../context/GameContext';
 
 // Component to handle image loading with fallback
 function CardImage({ card, apiUrl, transform }) {
-  const [imageSrc, setImageSrc] = useState(`${apiUrl}/${card.image || 'default_card_art.png'}`);
+  const [imageSrc, setImageSrc] = useState(`${apiUrl}/${card.image || 'static/cards/default_card_art.png'}`);
+  
+  // Reset image when card changes
+  useEffect(() => {
+    setImageSrc(`${apiUrl}/${card.image || 'static/cards/default_card_art.png'}`);
+  }, [card.image, apiUrl]);
   
   const handleImageError = () => {
-    setImageSrc(`${apiUrl}/default_card_art.png`);
+    setImageSrc(`${apiUrl}/static/cards/default_card_art.png`);
   };
 
   return (

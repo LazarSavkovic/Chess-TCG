@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { ArrowDoubleSVG, ArrowSingleSVG } from './ArrowSVG';
 
 // Component to handle image loading with fallback
 function CardImage({ card, apiUrl }) {
   const [imageSrc, setImageSrc] = useState(`${apiUrl}/${card.image || 'static/cards/default_card_art.png'}`);
+  
+  // Reset image when card changes
+  useEffect(() => {
+    setImageSrc(`${apiUrl}/${card.image || 'static/cards/default_card_art.png'}`);
+  }, [card.image, apiUrl]);
   
   const handleImageError = () => {
     setImageSrc(`${apiUrl}/static/cards/default_card_art.png`);

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { useParams, useNavigate } from "react-router-dom";
 import Card from "./Card";
+import CardPreview from "./CardPreview";
 import { buildDeckExport, downloadJson, compressById, slugify } from "../util/export";
 
 const PILES = ["MAIN", "SIDE", "LAND"];
@@ -24,16 +25,22 @@ function expandRows(rows, byId) {
 }
 
 // ----- UI bits -----
-function CardThumb({ c, onAdd, draggable = true }) {
+function CardThumb({ c, onAdd, onHover, draggable = true, hovered = false }) {
   return (
     <div
-      className="relative w-28 group rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 p-2 cursor-grab active:cursor-grabbing select-none"
+      className={`relative w-28 group rounded-xl border p-2 cursor-grab active:cursor-grabbing select-none ${
+        hovered 
+          ? 'bg-blue-600/60 border-blue-500' 
+          : 'bg-slate-800/60 hover:bg-slate-800 border-slate-700 rounded-xl'
+      }`}
       draggable={draggable}
       onDragStart={(e) => {
         e.dataTransfer.setData("application/json", JSON.stringify(c));
         e.dataTransfer.setData("text/plain", c.card_id);
       }}
       onDoubleClick={() => onAdd?.(c)}
+      onMouseEnter={() => onHover?.(c)}
+      onMouseLeave={() => onHover?.(null)}
       title={`${c.name}${c.mana != null ? ` · ${c.mana} mana` : ""}`}
     >
       <div className="w-24">
@@ -51,7 +58,7 @@ function CardThumb({ c, onAdd, draggable = true }) {
   );
 }
 
-function Pile({ name, cards, onAdd, onRemove, onClear }) {
+function Pile({ name, cards, onAdd, onRemove, onClear, onHover, hoveredCardId }) {
   return (
     <div
       className="rounded-2xl border border-slate-700 bg-slate-900/60 h-full min-h-0 flex flex-col"
@@ -81,7 +88,12 @@ function Pile({ name, cards, onAdd, onRemove, onClear }) {
       <div className="p-3 grid grid-cols-7 gap-3 auto-rows-min flex-1 min-h-0 overflow-y-auto">
         {cards.map((c, i) => (
           <div key={`${c.card_id}-${i}`} className="relative ">
-            <CardThumb c={c} draggable={false} />
+            <CardThumb 
+              c={c} 
+              draggable={false} 
+              onHover={onHover}
+              hovered={hoveredCardId === c.card_id}
+            />
             <button
               className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-600 text-white text-xs"
               title="Remove"
@@ -118,6 +130,7 @@ export default function DeckBuilder() {
 
   const [piles, setPiles] = useState({ MAIN: [], SIDE: [], LAND: [] });
   const [loading, setLoading] = useState(true);
+  const [selectedCard, setSelectedCard] = useState(null);
 
 
   function downloadDeck() {
@@ -356,9 +369,33 @@ export default function DeckBuilder() {
       </div>
 
       {/* content */}
-      <div className="max-w-7xl mx-auto px-4 pb-10 grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="max-w-full mx-auto px-4 pb-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* card preview */}
+        <aside className="lg:col-span-2">
+          <div className="rounded-2xl border border-slate-700 bg-slate-900/60 overflow-hidden sticky top-24">
+            <div className="border-b border-slate-800 p-4">
+              <h3 className="text-lg font-semibold">Card Preview</h3>
+              <p className="text-xs text-slate-500 mt-1">Hover over cards to preview</p>
+            </div>
+            <div className="p-4 flex justify-center">
+              {selectedCard ? (
+                <div className="w-64">
+                  <Card card={selectedCard} />
+                </div>
+              ) : (
+                <div className="w-64 h-96 flex items-center justify-center text-slate-500 border border-slate-700 rounded-lg">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">🔍</div>
+                    <div className="text-sm">Hover over a card to preview</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
+
         {/* piles */}
-        <div className="flex flex-col gap-6 lg:col-span-4 min-h-0">
+        <div className="flex flex-col gap-6 lg:col-span-8 min-h-0">
           <div className="w-full h-[60vh] min-h-0">
             <Pile
               name="MAIN"
@@ -366,6 +403,8 @@ export default function DeckBuilder() {
               onAdd={(c) => addTo("MAIN", c)}
               onRemove={(i) => removeFrom("MAIN", i)}
               onClear={() => clearPile("MAIN")}
+              onHover={setSelectedCard}
+              hoveredCardId={selectedCard?.card_id}
             />
           </div>
           <div className="w-full h-[30vh] min-h-0">
@@ -375,9 +414,11 @@ export default function DeckBuilder() {
               onAdd={(c) => addTo("LAND", c)}
               onRemove={(i) => removeFrom("LAND", i)}
               onClear={() => clearPile("LAND")}
+              onHover={setSelectedCard}
+              hoveredCardId={selectedCard?.card_id}
             />
           </div>
-
+  
           <div className="w-full h-[30vh] min-h-0">
             <Pile
               name="SIDE"
@@ -385,13 +426,15 @@ export default function DeckBuilder() {
               onAdd={(c) => addTo("SIDE", c)}
               onRemove={(i) => removeFrom("SIDE", i)}
               onClear={() => clearPile("SIDE")}
+              onHover={setSelectedCard}
+              hoveredCardId={selectedCard?.card_id}
             />
           </div>
 
         </div>
 
-        {/* catalog */}
-        <aside className="lg:col-span-1">
+        {/* card catalog */}
+        <aside className="lg:col-span-2">
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 overflow-hidden">
             <div className="border-b border-slate-800 p-3">
               <div className="flex flex-col gap-2">
@@ -428,17 +471,20 @@ export default function DeckBuilder() {
               </div>
             </div>
 
-            <div className="p-3 grid grid-cols-1 gap-3 max-h-[70vh] overflow-auto">
+            <div className="p-3 grid grid-cols-2 gap-3 max-h-[70vh] overflow-auto">
               {filtered.map((c) => (
                 <CardThumb
                   key={c.card_id}
                   c={c}
                   onAdd={(card) => addTo(card.type === "land" ? "LAND" : "MAIN", card)}
+                  onHover={setSelectedCard}
+                  hovered={selectedCard?.card_id === c.card_id}
                 />
               ))}
             </div>
           </div>
         </aside>
+
       </div>
     </div>
   );
