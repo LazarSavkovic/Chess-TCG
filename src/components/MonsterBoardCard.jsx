@@ -25,6 +25,10 @@ const ROLE_EMOJI = {
             style={{
                 top: `${y * (100 / 6)}%`,
                 left: `${x * (100 / 6)}%`,
+                marginTop: '-1vh', // Monster higher above land
+                // Shadow closer to monster with less blur
+                filter: 'drop-shadow(0 2vh 6px rgba(0, 0, 0, 0.4))',
+                zIndex: 10
             }}
             title={card.name}
             onMouseEnter={() => setCardPreview(card)}

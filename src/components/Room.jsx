@@ -14,6 +14,8 @@ import TurnDetail from './TurnDetail';
 import Detail from './Detail';
 import Sounds from './Sounds';
 import TutoringTargets from './TutoringTargets';
+import GraveyardTargets from './GraveyardTargets';
+import GraveyardPopup from './GraveyardPopup';
 import LandDeckPopup from './LandDeckPopup';
 import { moveElementOver } from '../util/animations';
 import { useAuth, useUser } from '@clerk/clerk-react';
@@ -42,13 +44,8 @@ const fmtDate = (s) => { try { return new Date(s).toLocaleString(); } catch { re
 const prettyName = (payload) =>
   payload?.name || `Imported Deck (${pileCount(payload?.piles?.MAIN)} main / ${pileCount(payload?.piles?.LAND)} land)`;
 
-// quick input helper for now (replace with a nice popup later)
-function promptForId(message) {
-  // eslint-disable-next-line no-alert
-  const val = window.prompt(message || 'Enter card_id');
-  if (!val) return null;
-  return val.trim();
-}
+// Note: promptForId function removed as we now use proper UI components
+// for deck and graveyard selection instead of browser prompts
 
 
 
@@ -305,20 +302,23 @@ function Room() {
       }
 
       // --- New engine state comes with most snapshots ---
-      if ('interaction' in data && data.interaction) {
-      const ixn = data.interaction; console.log('[IXN]', { awaiting: ixn?.awaiting?.kind, owner: ixn?.owner, myId: String(myIdNow), });
-        setInteraction(data.interaction);
-        // optional: show a toast when a new step appears
-        const awaiting = data.interaction?.awaiting;
-        if (awaiting && data.interaction?.owner === String(myIdNow)) {
-          const label =
-            awaiting.kind === 'discard_from_hand' ? 'Discard a card' :
-              awaiting.kind === 'select_board_target' ? 'Select a target on the board' :
-                awaiting.kind === 'select_land_target' ? 'Select a land' :
-                  awaiting.kind === 'select_deck_card' ? 'Pick a card from your deck' :
-                  awaiting.kind === 'select_graveyard_card' ? 'Pick a card from your graveyard' :
-                    'Choose…';
-          notify('yellow', label);
+      if ('interaction' in data) {
+        const ixn = data.interaction; 
+        console.log('[IXN]', { awaiting: ixn?.awaiting?.kind, owner: ixn?.owner, myId: String(myIdNow), interaction_null: ixn === null });
+        setInteraction(data.interaction); // This can be null to clear the interaction
+        // optional: show a toast when a new step appears (only if interaction exists)
+        if (data.interaction) {
+          const awaiting = data.interaction?.awaiting;
+          if (awaiting && data.interaction?.owner === String(myIdNow)) {
+            const label =
+              awaiting.kind === 'discard_from_hand' ? 'Discard a card' :
+                awaiting.kind === 'select_board_target' ? 'Select a target on the board' :
+                  awaiting.kind === 'select_land_target' ? 'Select a land' :
+                    awaiting.kind === 'select_deck_card' ? 'Pick a card from your deck' :
+                    awaiting.kind === 'select_graveyard_card' ? 'Pick a card from your graveyard' :
+                      'Choose…';
+            notify('yellow', label);
+          }
         }
       }
 
@@ -342,17 +342,15 @@ function Room() {
 
         // ✅ From here on, handle the step ONCE
         if (a.kind === 'select_board_target' || a.kind === 'select_land_target') {
+          console.log('before running highlightCellsForAwaiting')
           highlightCellsForAwaiting(a);
+          console.log('just ran highlightCellsForAwaiting')
           notify('yellow', 'Choose a target cell');
         } else if (a.kind === 'discard_from_hand') {
           notify('yellow', 'Discard a card from your hand');
-        } else if (a.kind === 'select_deck_card') {
-          const id = promptForId('Type the card_id to tutor from your deck:');
-          if (id) sendSorceryStep(wsRef, { card_id: id });
-        } else if (a.kind === 'select_graveyard_card') {
-          const id = promptForId('Type the card_id from your graveyard:');
-          if (id) sendSorceryStep(wsRef, { card_id: id });
         }
+        // Note: select_deck_card is handled by TutoringTargets component
+        // Note: select_graveyard_card is handled by GraveyardTargets component
       }
 
       if (data.type === 'opponent-waiting') {
@@ -715,7 +713,9 @@ function Room() {
       <Hand wsRef={wsRef} />
       <Sounds />
       <LandDeckPopup />
+      <GraveyardPopup />
       <TutoringTargets wsRef={wsRef} />
+      <GraveyardTargets wsRef={wsRef} />
       {lobby?.phase === 'lobby' && (
         <div className="lobby-overlay">
           <div className="lobby-card">

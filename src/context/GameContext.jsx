@@ -53,6 +53,8 @@ const GameProvider = ({ children }) => {
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
   const [cardPreview, setCardPreview] = useState(null);
   const [showLandDeck, setShowLandDeck] = useState(false);
+  const [showGraveyard, setShowGraveyard] = useState(false);
+  const [showGraveyardPlayer, setShowGraveyardPlayer] = useState(null); // '1' or '2'
 
 
 
@@ -295,6 +297,10 @@ const highlightSummonZones = (monsterCard = null) => {
         setShowLandDeck,
         setSelectedLandDeckIndex,
         selectedLandDeckIndex,
+        showGraveyard,
+        setShowGraveyard,
+        showGraveyardPlayer,
+        setShowGraveyardPlayer,
         actionsThisTurn,
         setActionsThisTurn,
         sendSorceryStep

@@ -268,6 +268,9 @@ function Board({ flipDirection, notify, wsRef }) {
             style={{
                 gridTemplateColumns: `repeat(${numCols}, ${cellSize}vh)`,
                 gridTemplateRows: `repeat(${numRows}, ${cellSize}vh)`,
+                transform: 'perspective(800px) rotateX(18deg)', // Closer perspective, more tilt
+                transformOrigin: 'center center',
+                transition: 'transform 0.3s ease',
             }}
         >
             {monsters.map(({ card, x, y, realX, realY }) => (
@@ -297,7 +300,7 @@ function Board({ flipDirection, notify, wsRef }) {
                             ? {
                                 background: 'rgba(255, 215, 0, 0.25)',
                                 outline: '2px solid gold',
-                                boxShadow: '0 0 10px rgba(255,215,0,.6)',
+                                boxShadow: '0 0  10px rgba(255,215,0,.6)',
                                 cursor: 'pointer',
                             }
                             : {

@@ -24,7 +24,18 @@ function BoardCard({card, x, y, flipDirection}) {
     id={`card-${card.id}`}
     className={`card-frame user-${card.owner} ${lastSummonedPos === `${x}-${y}` ? 'just-summoned' : ''
         }`}
-    style={card.type === 'land' ? { transform: 'rotate(45deg)' } : {}}
+    style={
+        card.type === 'land' 
+            ? { 
+                transform: 'rotate(45deg) translateZ(0px)', // Land cards at ground level
+                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))',
+                zIndex: 5,
+                opacity: 0.9, // Slightly transparent so monsters show better above
+                // Add a subtle border to help visibility
+                border: '1px solid rgba(255, 255, 255, 0.3)'
+              } 
+            : { zIndex: 1 } // Other cards at base level
+        }
     title={card.name}
     onMouseEnter={() => setCardPreview(card)}
 >
