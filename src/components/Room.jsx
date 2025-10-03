@@ -305,53 +305,45 @@ function Room() {
       if ('interaction' in data) {
         const ixn = data.interaction; 
         console.log('[IXN]', { awaiting: ixn?.awaiting?.kind, owner: ixn?.owner, myId: String(myIdNow), interaction_null: ixn === null });
-        setInteraction(data.interaction); // This can be null to clear the interaction
-        // optional: show a toast when a new step appears (only if interaction exists)
-        if (data.interaction) {
-          const awaiting = data.interaction?.awaiting;
-          if (awaiting && data.interaction?.owner === String(myIdNow)) {
-            const label =
-              awaiting.kind === 'discard_from_hand' ? 'Discard a card' :
-                awaiting.kind === 'select_board_target' ? 'Select a target on the board' :
-                  awaiting.kind === 'select_land_target' ? 'Select a land' :
-                    awaiting.kind === 'select_deck_card' ? 'Pick a card from your deck' :
-                    awaiting.kind === 'select_graveyard_card' ? 'Pick a card from your graveyard' :
-                      'Choose…';
-            notify('yellow', label);
+        
+        // Handle interaction changes with deduplication
+        if (ixn) {
+          const key = awaitingKeyFromInteraction(ixn);
+          // If we've already handled this exact step, ignore this repeat snapshot
+          if (key && key === lastAwaitingKeyRef.current) {
+            setInteraction(data.interaction); // Still update state
+            return;
           }
+          lastAwaitingKeyRef.current = key;
+        } else {
+          lastAwaitingKeyRef.current = null;
         }
+        
+        setInteraction(data.interaction); // This can be null to clear the interaction
+        
+        // Handle new interaction steps
+        if (ixn && ixn.awaiting && ixn.owner === String(myIdNow)) {
+          const awaiting = ixn.awaiting;
+          const label =
+            awaiting.kind === 'discard_from_hand' ? 'Discard a card' :
+              awaiting.kind === 'select_board_target' ? 'Select a target on the board' :
+                awaiting.kind === 'select_land_target' ? 'Select a land' :
+                  awaiting.kind === 'select_deck_card' ? 'Pick a card from your deck' :
+                  awaiting.kind === 'select_graveyard_card' ? 'Pick a card from your graveyard' :
+                    'Choose…';
+          notify('yellow', label);
+          
+          // Note: Board highlighting is handled automatically by Board.jsx 
+          // when it receives interaction data with suggestions
+        }
+      } else if (data.interaction === null) {
+        // Clear interaction when backend sends null
+        lastAwaitingKeyRef.current = null;
+        setInteraction(null);
       }
 
       if ('stack' in data) setStack(data.stack || []);
 
-      // === New engine messages ===
-      if (data.type === 'awaiting-step') {
-        const nextInteraction = data.interaction || interaction; // prefer fresh from data
-        const key = awaitingKeyFromInteraction(nextInteraction);
-
-        // If we've already handled this exact step, ignore this repeat snapshot
-        if (key && key === lastAwaitingKeyRef.current) {
-          // Optional: keep highlights fresh but DO NOT send again
-          // highlightCellsForAwaiting(nextInteraction.awaiting);
-          return;
-        }
-        lastAwaitingKeyRef.current = key;
-
-        const a = nextInteraction?.awaiting;
-        if (!a) return;
-
-        // ✅ From here on, handle the step ONCE
-        if (a.kind === 'select_board_target' || a.kind === 'select_land_target') {
-          console.log('before running highlightCellsForAwaiting')
-          highlightCellsForAwaiting(a);
-          console.log('just ran highlightCellsForAwaiting')
-          notify('yellow', 'Choose a target cell');
-        } else if (a.kind === 'discard_from_hand') {
-          notify('yellow', 'Discard a card from your hand');
-        }
-        // Note: select_deck_card is handled by TutoringTargets component
-        // Note: select_graveyard_card is handled by GraveyardTargets component
-      }
 
       if (data.type === 'opponent-waiting') {
         notify('muted', 'Opponent is resolving a sorcery…');

@@ -1,6 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { ArrowDoubleSVG, ArrowSingleSVG } from './ArrowSVG';
+
+// Component to handle image loading with fallback
+function CardImage({ card, apiUrl }) {
+  const [imageSrc, setImageSrc] = useState(`${apiUrl}/${card.image || 'static/cards/default_card_art.png'}`);
+  
+  const handleImageError = () => {
+    setImageSrc(`${apiUrl}/static/cards/default_card_art.png`);
+  };
+
+  return (
+    <div
+      className="card-image"
+      style={{
+        backgroundImage: `url(${imageSrc})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Hidden img tag to detect load failures */}
+      <img
+        src={imageSrc}
+        alt=""
+        style={{ display: 'none' }}
+        onError={handleImageError}
+        onLoad={() => {
+          // Image loaded successfully, keep current imageSrc
+        }}
+      />
+    </div>
+  );
+}
 
 function Card({ card, fontSize }) {
 const ROLE_EMOJI = {
@@ -68,14 +99,10 @@ const ROLE_EMOJI = {
 
       <div className="card-content">
 
-        <div
-          className="card-image"
-          style={{
-            backgroundImage: `url(${apiUrl}/${card.image})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        ></div>
+        <CardImage 
+          card={card} 
+          apiUrl={apiUrl}
+        />
                 <div className="title-bar">
           {ROLE_EMOJI[card.role]}
           {card.name}

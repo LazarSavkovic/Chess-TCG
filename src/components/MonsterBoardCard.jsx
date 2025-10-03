@@ -1,5 +1,26 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useGame } from '../context/GameContext';
+
+// Component to handle image loading with fallback
+function CardImage({ card, apiUrl, transform }) {
+  const [imageSrc, setImageSrc] = useState(`${apiUrl}/${card.image || 'default_card_art.png'}`);
+  
+  const handleImageError = () => {
+    setImageSrc(`${apiUrl}/default_card_art.png`);
+  };
+
+  return (
+    <div className="card-image" style={{ backgroundImage: `url(${imageSrc})`, transform }}>
+      {/* Hidden img tag to detect load failures */}
+      <img
+        src={imageSrc}
+        alt=""
+        style={{ display: 'none' }}
+        onError={handleImageError}
+      />
+    </div>
+  );
+}
 
 function MonsterBoardCard({ card, x, y, flipDirection, handleClick }) {
 const ROLE_EMOJI = {
@@ -40,7 +61,11 @@ const ROLE_EMOJI = {
                     {ROLE_EMOJI[card.role] || '🃏'}
                 </div>
             )}
-            <div className="card-image" style={{ backgroundImage: `url(${apiUrl}${card.image})`, transform: card.owner !== userId ? 'scaleY(-1)' : 'none' }}></div>
+            <CardImage 
+              card={card} 
+              apiUrl={apiUrl}
+              transform={card.owner !== userId ? 'scaleY(-1)' : 'none'}
+            />
             <div className="overlay"></div>
             <div className="card-name">{card.name}</div>
             <div className="stats">
