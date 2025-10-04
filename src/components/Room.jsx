@@ -324,6 +324,10 @@ function Room() {
         // Handle new interaction steps
         if (ixn && ixn.awaiting && ixn.owner === String(myIdNow)) {
           const awaiting = ixn.awaiting;
+          console.log('[ROOM] Interaction awaiting:', awaiting);
+          console.log('[ROOM] Awaiting kind:', awaiting.kind);
+          console.log('[ROOM] Awaiting suggestions:', awaiting.suggestions);
+          
           const label =
             awaiting.kind === 'discard_from_hand' ? 'Discard a card' :
               awaiting.kind === 'select_board_target' ? 'Select a target on the board' :

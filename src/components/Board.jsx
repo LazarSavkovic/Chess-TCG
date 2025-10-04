@@ -5,7 +5,7 @@ import BoardCard from './BoardCard';
 import MonsterBoardCard from './MonsterBoardCard';
 import { evaluateTileForCard } from '../util/evaluate';
 
-const cellSize = 12.5; // in vh units
+const cellSize = 12; // in vh units (slightly larger than 11vh)
 
 function Board({ flipDirection, notify, wsRef }) {
     const {

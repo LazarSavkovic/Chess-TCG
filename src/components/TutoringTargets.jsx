@@ -14,6 +14,15 @@ function TutoringTargets({ wsRef }) {
     amActor && awaiting && awaiting.kind === "select_deck_card"
   );
 
+  console.log('[TUTORING] Component render:', {
+    interaction: !!interaction,
+    awaiting: !!awaiting,
+    awaitingKind: awaiting?.kind,
+    amActor,
+    isOpen,
+    userId
+  });
+
   const cards = isOpen ? awaiting.suggestions || [] : [];
 
   const handlePick = (cardId) => {
