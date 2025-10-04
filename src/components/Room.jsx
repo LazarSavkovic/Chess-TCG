@@ -100,6 +100,7 @@ function Room() {
   // Refs
   // -----------------------
   const wsRef = useRef(null);
+  const myIdRef = useRef(null);
 
   const lastAwaitingKeyRef = useRef(null);
 
@@ -160,7 +161,11 @@ function Room() {
     const raw = localStorage.getItem('userAssignments');
     try {
       const ua = raw && raw !== 'undefined' && raw !== 'null' ? JSON.parse(raw) : null;
-      if (ua && ua[playerName]) setUserId(ua[playerName]);
+      if (ua && ua[playerName]) {
+        const userId = ua[playerName];
+        setUserId(userId);
+        myIdRef.current = userId; // Update the ref as well
+      }
     } catch {
       localStorage.removeItem('userAssignments');
     }
@@ -184,7 +189,8 @@ function Room() {
     if (!clerkUserId) return;
     setLoadingDecks(true);
     try {
-      const res = await fetch(`/api/decks`, { headers: { "X-Clerk-User-Id": clerkUserId } });
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/decks`, { headers: { "X-Clerk-User-Id": clerkUserId } });
       const data = await res.json();
       setMyDecks(Array.isArray(data) ? data : []);
     } finally {
@@ -195,7 +201,8 @@ function Room() {
   async function chooseDeckById(id) {
     if (!clerkUserId) return;
     try {
-      const res = await fetch(`/api/decks/${id}`, { headers: { "X-Clerk-User-Id": clerkUserId } });
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/decks/${id}`, { headers: { "X-Clerk-User-Id": clerkUserId } });
       if (!res.ok) { throw new Error('Failed to fetch deck'); }
       const deck = await res.json();
       const payload = {
@@ -295,7 +302,9 @@ function Room() {
           localStorage.setItem('userAssignments', JSON.stringify(data.user_assignments))
           localStorage.setItem('mana', JSON.stringify(data.mana))
           console.log(data)
-          setUserId(data.user_assignments[playerName]);
+          const userId = data.user_assignments[playerName];
+          setUserId(userId);
+          myIdRef.current = userId; // Update the ref as well
         }
 
 

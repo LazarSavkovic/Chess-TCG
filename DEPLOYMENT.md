@@ -21,7 +21,21 @@ VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here
 
 - ✅ `vite.config.js` - Now handles dev/prod modes
 - ✅ `config.js` - Centralized config with fallbacks
+- ✅ All API calls fixed to use environment variables
+- ✅ WebSocket myIdRef bug fixed
 - ✅ Build tested successfully
+
+## Recent Fixes Applied
+
+### Fixed Issues:
+1. **myIdRef undefined error** - Added proper ref initialization and updates
+2. **JSON parsing error** - Fixed all hardcoded `/api/` paths to use `VITE_API_URL`
+3. **Production API calls** - All components now use environment variables
+
+### Components Updated:
+- `Room.jsx` - Fixed WebSocket handler and API calls
+- `DecksPage.jsx` - Fixed all deck-related API calls
+- `DeckBuilder.jsx` - Fixed all builder API calls
 
 ## For Vercel Deployment
 
@@ -36,3 +50,10 @@ The frontend will connect to your deployed backend using:
 - WebSocket connections via `VITE_API_HOST`
 
 Make sure your backend CORS is configured for your frontend domain.
+
+## Troubleshooting
+
+If you see "Unexpected token '<'" errors:
+- Check that `VITE_API_URL` is set correctly
+- Verify your backend is running and accessible
+- Ensure CORS is configured on your backend

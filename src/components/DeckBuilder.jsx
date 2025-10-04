@@ -147,7 +147,8 @@ export default function DeckBuilder() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`/api/cards`);
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${apiUrl}/cards`);
         const data = await res.json();
         setCatalog(Array.isArray(data) ? data : []);
       } finally {
@@ -168,7 +169,8 @@ export default function DeckBuilder() {
     if (!routeDeckId || catalog.length === 0) return;
 
     (async () => {
-      const res = await fetch(`/api/decks/${routeDeckId}`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/decks/${routeDeckId}`, {
         headers: { "X-Clerk-User-Id": userId },
       });
       if (!res.ok) {
@@ -222,8 +224,9 @@ export default function DeckBuilder() {
     let id = deckId;
 
     // Create or update deck metadata
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     if (!id) {
-      const mk = await fetch(`/api/decks`, {
+      const mk = await fetch(`${apiUrl}/decks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -239,7 +242,7 @@ export default function DeckBuilder() {
       id = j.id;
       setDeckId(id);
     } else {
-      const up = await fetch(`/api/decks/${id}`, {
+      const up = await fetch(`${apiUrl}/decks/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -256,7 +259,7 @@ export default function DeckBuilder() {
     // Replace each pile
     for (const pileName of PILES) {
       const body = { pile: pileName, cards: compressById(piles[pileName]) };
-      const res = await fetch(`/api/decks/${id}/cards`, {
+      const res = await fetch(`${apiUrl}/decks/${id}/cards`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -277,7 +280,8 @@ export default function DeckBuilder() {
 
   async function makeActive() {
     if (!deckId) return;
-    const res = await fetch(`/api/decks/${deckId}`, {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${apiUrl}/decks/${deckId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -297,7 +301,8 @@ export default function DeckBuilder() {
   async function deleteDeck() {
     if (!deckId) return;
     if (!window.confirm(`Delete deck "${deckName}"? This cannot be undone.`)) return;
-    const res = await fetch(`/api/decks/${deckId}`, {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${apiUrl}/decks/${deckId}`, {
       method: "DELETE",
       headers: { "X-Clerk-User-Id": userId },
     });

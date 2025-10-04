@@ -85,13 +85,14 @@ function DeckDetailsModal({ open, onClose, deckId }) {
       setLoading(true);
       try {
         // fetch deck details (includes piles)
-        const d = await fetch(`/api/decks/${deckId}`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const d = await fetch(`${apiUrl}/decks/${deckId}`, {
           headers: { "X-Clerk-User-Id": userId },
         });
         const deckData = await d.json();
 
         // fetch catalog to resolve card_id → card data (name, image, etc.)
-        const c = await fetch(`/api/cards`);
+        const c = await fetch(`${apiUrl}/cards`);
         const cat = await c.json();
 
         setDeck(deckData);
@@ -201,7 +202,8 @@ export default function DecksPage() {
     const { MAIN = [], SIDE = [], LAND = [] } = payload.piles;
 
     // 1) create deck
-    const createRes = await fetch(`/api/decks`, {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const createRes = await fetch(`${apiUrl}/decks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -228,7 +230,7 @@ export default function DecksPage() {
     ];
 
     for (const [pile, rows] of pilesToSend) {
-      const res = await fetch(`/api/decks/${newId}/cards`, {
+      const res = await fetch(`${apiUrl}/decks/${newId}/cards`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -278,7 +280,8 @@ export default function DecksPage() {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/decks`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/decks`, {
         headers: { "X-Clerk-User-Id": userId },
       });
       const data = await res.json();
@@ -293,7 +296,8 @@ export default function DecksPage() {
   }, [userId]);
 
   async function makeActive(deck) {
-    await fetch(`/api/decks/${deck.id}`, {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    await fetch(`${apiUrl}/decks/${deck.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -306,7 +310,8 @@ export default function DecksPage() {
 
   async function deleteDeck(deck) {
     if (!window.confirm(`Delete deck "${deck.name}"? This cannot be undone.`)) return;
-    await fetch(`/api/decks/${deck.id}`, {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    await fetch(`${apiUrl}/decks/${deck.id}`, {
       method: "DELETE",
       headers: { "X-Clerk-User-Id": userId },
     });
